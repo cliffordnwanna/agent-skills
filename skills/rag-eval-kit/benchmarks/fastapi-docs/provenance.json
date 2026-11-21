@@ -1,0 +1,63 @@
+{
+  "name": "FastAPI English tutorial subset",
+  "source_repository": "https://github.com/fastapi/fastapi",
+  "source_revision": "05e6df7e906c3decba377c37548019973f40bf15",
+  "license": "MIT",
+  "license_url": "https://github.com/fastapi/fastapi/blob/05e6df7e906c3decba377c37548019973f40bf15/LICENSE",
+  "documents": [
+    {
+      "source_id": "body",
+      "title": "Request Body",
+      "source_url": "https://github.com/fastapi/fastapi/blob/05e6df7e906c3decba377c37548019973f40bf15/docs/en/docs/tutorial/body.md",
+      "source_path": "corpus/body.md",
+      "source_sha256": "aa4b8d5cc52dd0d590306d7ea40529ebd6b8f06b65cf762daf046dc96e4f85c4",
+      "content_sha256": "aa4b8d5cc52dd0d590306d7ea40529ebd6b8f06b65cf762daf046dc96e4f85c4"
+    },
+    {
+      "source_id": "query-params",
+      "title": "Query Parameters",
+      "source_url": "https://github.com/fastapi/fastapi/blob/05e6df7e906c3decba377c37548019973f40bf15/docs/en/docs/tutorial/query-params.md",
+      "source_path": "corpus/query-params.md",
+      "source_sha256": "5ca3939dc68b06cc85afa64119a29f0fa66e784d5b0b3cef384ff5f9d1947eb6",
+      "content_sha256": "5ca3939dc68b06cc85afa64119a29f0fa66e784d5b0b3cef384ff5f9d1947eb6"
+    },
+    {
+      "source_id": "path-params",
+      "title": "Path Parameters",
+      "source_url": "https://github.com/fastapi/fastapi/blob/05e6df7e906c3decba377c37548019973f40bf15/docs/en/docs/tutorial/path-params.md",
+      "source_path": "corpus/path-params.md",
+      "source_sha256": "2d738516f5b48f6c9c6ded0ce0a864eaa8c2202ab67623fbb77aac6db2a1a539",
+      "content_sha256": "2d738516f5b48f6c9c6ded0ce0a864eaa8c2202ab67623fbb77aac6db2a1a539"
+    },
+    {
+      "source_id": "response-model",
+      "title": "Response Model",
+      "source_url": "https://github.com/fastapi/fastapi/blob/05e6df7e906c3decba377c37548019973f40bf15/docs/en/docs/tutorial/response-model.md",
+      "source_path": "corpus/response-model.md",
+      "source_sha256": "50e697a449caefd72ff58b9b0e3e398501010ee135fb807109c0d833ce7e924d",
+      "content_sha256": "50e697a449caefd72ff58b9b0e3e398501010ee135fb807109c0d833ce7e924d"
+    },
+    {
+      "source_id": "request-forms",
+      "title": "Form Data",
+      "source_url": "https://github.com/fastapi/fastapi/blob/05e6df7e906c3decba377c37548019973f40bf15/docs/en/docs/tutorial/request-forms.md",
+      "source_path": "corpus/request-forms.md",
+      "source_sha256": "ffce359400a2a1e4ccd01120d0fb9878f4438313484ae6ae795cb4547762f1b4",
+      "content_sha256": "ffce359400a2a1e4ccd01120d0fb9878f4438313484ae6ae795cb4547762f1b4"
+    },
+    {
+      "source_id": "header-params",
+      "title": "Header Parameters",
+      "source_url": "https://github.com/fastapi/fastapi/blob/05e6df7e906c3decba377c37548019973f40bf15/docs/en/docs/tutorial/header-params.md",
+      "source_path": "corpus/header-params.md",
+      "source_sha256": "dcd722a0f97daba2eaa3d238d8447d98bc783b01d3a114134cdb28af07fb6ecb",
+      "content_sha256": "dcd722a0f97daba2eaa3d238d8447d98bc783b01d3a114134cdb28af07fb6ecb"
+    }
+  ],
+  "transformations": [
+    "Selected six English Markdown tutorial files from the pinned upstream revision.",
+    "Each corpus file is an exact byte-for-byte copy; no transformation or paraphrasing was applied to source documents.",
+    "Question candidates and reference evidence are separately authored and remain subject to human review.",
+    "Corpus and each source are below the Builder limits of 20 items, 50,000 characters per item, and 100,000 characters total."
+  ]
+}

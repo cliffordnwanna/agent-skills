@@ -1,0 +1,8 @@
+﻿private/
+*.local.md
+.env
+.env.*
+outputs/
+.venv/
+__pycache__/
+node_modules/

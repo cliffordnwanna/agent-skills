@@ -1,0 +1,13 @@
+{
+  "model": "gpt-4.1-mini",
+  "price": {
+    "input_usd_per_million": "0.40",
+    "output_usd_per_million": "1.60",
+    "source_url": "https://developers.openai.com/api/docs/pricing",
+    "checked_on": "2026-11-21"
+  },
+  "input_token_cap": 20000,
+  "max_output_tokens": 1024,
+  "max_calls": 100,
+  "timeout_seconds": 30
+}

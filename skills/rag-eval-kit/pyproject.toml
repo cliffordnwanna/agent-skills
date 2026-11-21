@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rag-eval-kit"
+version = "0.1.0"
+description = "Local, evidence-first evaluation tooling for HTTP RAG applications"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = "Apache-2.0"
+authors = [{ name = "Clifford Nwanna" }]
+dependencies = [
+  "deepeval==4.3.4",
+  "httpx==0.28.1",
+  "openai==3.51.0",
+  "pydantic==2.14.3",
+  "typer==0.29.1",
+]
+
+[project.scripts]
+ragkit = "rag_eval_kit.cli:app"
+
+[dependency-groups]
+dev = ["pytest==9.2.0", "ruff==0.17.5"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rag_eval_kit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
