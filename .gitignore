@@ -1,4 +1,4 @@
-﻿private/
+private/
 *.local.md
 .env
 .env.*
