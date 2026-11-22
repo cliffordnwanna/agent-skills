@@ -20,6 +20,7 @@ from rag_eval_kit.budget import BudgetLedger
 from rag_eval_kit.config import JudgeConfig
 from rag_eval_kit.evaluation import compare_runs, evaluate_lexical, evaluate_semantic
 from rag_eval_kit.privacy import configure_local_runtime
+from rag_eval_kit.provenance import evaluator_revision
 from rag_eval_kit.reporting import markdown_report
 from rag_eval_kit.revision import verify_revision
 
@@ -189,6 +190,7 @@ def spike(
         "started_at": datetime.now(UTC).isoformat(),
         "status": "running",
         "tool_version": version("rag-eval-kit"),
+        "evaluator_revision": evaluator_revision(),
         "builder_called": False,
         "target_revision": None,
         "requested_budget_usd": str(ledger.limit) if ledger else None,

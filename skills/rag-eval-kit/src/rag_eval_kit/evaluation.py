@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from rag_eval_kit import __version__
 from rag_eval_kit.models import EvaluationRecord
+from rag_eval_kit.provenance import evaluator_revision
 
 LEXICAL_METRICS = ("hit_at_1", "hit_at_3", "recall_at_3", "mrr", "abstention_accuracy")
 SEMANTIC_METRICS = (
@@ -107,6 +108,7 @@ def evaluate_lexical(
         "run_id": str(uuid4()),
         "created_at": datetime.now(UTC).isoformat(),
         "tool_version": __version__,
+        "evaluator_revision": evaluator_revision(),
         "status": "completed" if valid else "no_valid_records",
         "retrieval_mode": "lexical",
         "target_revision": target_revision,
@@ -269,6 +271,7 @@ def evaluate_semantic(
         "run_id": str(uuid4()),
         "created_at": datetime.now(UTC).isoformat(),
         "tool_version": __version__,
+        "evaluator_revision": evaluator_revision(),
         "status": "completed" if valid else "no_assessable_records",
         "retrieval_mode": "semantic",
         "target_revision": target_revision,
