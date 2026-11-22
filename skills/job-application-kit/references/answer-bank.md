@@ -1,6 +1,6 @@
 # Application answers
 
-Answer the questions in the posting first. Then cover the standard set below, in paste-ready form, three to four sentences each. All facts come from the portfolio or the user (truth rule). Tailor to this role and company; do not reuse text blindly across applications.
+Answer the questions in the posting first. Use the standard set below for any posting question that matches it, and add the rest of the set only in careful mode or when the user asks; the default output stays lean. Keep each answer paste-ready, three to four sentences. All facts come from the portfolio or the user (truth rule). Tailor to this role and company; do not reuse text blindly across applications.
 
 ## Standard questions and rules
 

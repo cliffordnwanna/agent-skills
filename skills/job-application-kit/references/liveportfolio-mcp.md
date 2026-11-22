@@ -4,7 +4,7 @@ Address: `https://liveportfolio.site/mcp`. Connect guide: `https://liveportfolio
 
 ## How to read it
 
-1. Call `portfolio_get`. It returns the portfolio content (name, role, headline, about, skills, projects, experience, education, certifications, testimonials, links), the design, and a `version`. Contact details (email, phone, WhatsApp) are returned only if the person allowed them when connecting.
+1. Call `portfolio_get` (a read-only tool; its name and behaviour are documented in the LivePortfolio MCP repository's `docs/tools.md`). It returns the portfolio content (name, role, headline, about, skills, projects, experience, education, certifications, testimonials, links), the design, and a `version`. Contact details (email, phone, WhatsApp) are returned only if the person allowed them when connecting.
 2. Use the optional `sections` filter when you only need some parts (for example `["about","skills","projects"]`).
 3. Positions (index) start at 0 in the order returned.
 

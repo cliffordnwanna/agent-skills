@@ -4,8 +4,8 @@ This is a complete path. Use it whenever Reactive Resume isn't connected, or the
 
 ## Choose the method by what the client can do
 
-1. **Client has document skills or tools** (Claude with docx/pdf skills, ChatGPT file generation): create the files with them. DOCX is the safest format for editing; PDF for sending.
-2. **Code execution available:** build a DOCX with `python-docx` or `docx` (Node), then convert to PDF with LibreOffice if present, or build the PDF directly with a PDF library (for example `reportlab`).
+1. **Client has document skills or tools** (for example Claude's docx and pdf skills; other clients vary, so check): create the files with them. DOCX is the safest format for editing; PDF for sending.
+2. **Code execution available:** run `python scripts/render_docs.py <package.json> <outdir> --pdf` (validates the package first, writes separate dated DOCX files, and converts to PDF if LibreOffice is installed; otherwise it prints a notice and the DOCX files still arrive). Or build a DOCX with `python-docx` or `docx` (Node) yourself, then convert to PDF with LibreOffice if present, or build the PDF with a PDF library (for example `reportlab`).
 3. **No file tools at all:** give clean Markdown the user can paste into a Word or Google Docs template, and say so in one line.
 
 Check what is available instead of assuming. Do not ask the user to install anything unless nothing else works.

@@ -2,7 +2,7 @@
 
 ## Truth rule (applies first)
 
-Every line comes from the portfolio, the user's pasted CV, or the user in this chat. Do not invent bullets, numbers, titles, employers, tools, dates or achievements. If a bullet would be stronger with a figure that you do not have, write `[needs your real figure]` and ask. A test earlier produced a fabricated "reduced runtime by 30%" bullet from a blank prompt; this rule exists to stop that.
+Every line comes from the portfolio, the user's pasted CV, or the user in this chat. Do not invent bullets, numbers, titles, employers, tools, dates or achievements. If a bullet would be stronger with a figure that you do not have, write `[needs your real figure]` and ask. Language models can produce plausible but invented metrics when asked for a strong bullet; this rule exists to stop that. The validator (`schemas/models.py`) catches digits and common number words, but it is a heuristic: you are the first line of defence.
 
 ## What you may change
 

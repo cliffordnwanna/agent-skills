@@ -3,7 +3,7 @@
 Job titles are a poor guide. The same work has many names, and good jobs hide behind unexpected titles. Never limit the search or the matching to exact keywords.
 
 ## When to run
-After the user picks their roles (onboarding question 2), and whenever they add a role. Save the result as `search-terms.md` (private).
+After the user picks their roles (onboarding question 2), and whenever they add a role. Save the result as `private/search-terms.md` (the `private/` folder is gitignored).
 
 ## For each chosen role, produce
 1. **Title variants** (8 to 15): synonyms, seniority variants, and how different industries name it.

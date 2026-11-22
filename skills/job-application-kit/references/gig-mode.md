@@ -12,6 +12,8 @@ Use when the posting is a short contract, task or project, or hourly work (for e
 
 Never bundle files into a ZIP: each document is its own download.
 
+**High-risk postings:** the rule in `SKILL.md` (rule 7) applies here too. Show the warning first, draft no outreach or pitch message to send, and do not ask the user for personal details.
+
 ## Practical points
 - Note assessment or test steps in the posting and how to prepare in a line or two.
 - Convert the stated rate to the user's currency only if useful, and say the exchange rate used is approximate.

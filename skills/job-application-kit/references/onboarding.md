@@ -14,7 +14,7 @@ Run `preferences-intake.md`: one message of lettered multiple-choice questions t
 
 ## 3. Details a CV needs
 
-Name, email, city and country, portfolio link, LinkedIn (all optional except name and email). Phone and street address are hidden by default. Ask only for what the portfolio did not provide.
+Name, email, city and country, portfolio link, LinkedIn (all optional except name and email). Phone and street address are hidden by default. These are question 8 of `preferences-intake.md`: if the user already answered it, do not ask again. Ask only for what the portfolio and that answer did not provide.
 
 ## 4. Documents: Reactive Resume or plain files
 
@@ -26,7 +26,7 @@ Explain in two lines and let the user choose:
 If the user wants Reactive Resume, walk through it one step at a time and check after each:
 
 1. Create a free account at https://rxresu.me.
-2. Add the connector in their AI client: address `https://rxresu.me/mcp`, approve the sign-in. In Claude: Settings, Connectors, add custom connector. In ChatGPT: Settings, Apps and Connectors, add a custom connector (this may need developer mode; if the option is missing, say so and offer plain files). In Claude Code: `npx add-mcp https://rxresu.me/mcp --name reactive-resume`.
+2. Add the connector in their AI client: address `https://rxresu.me/mcp`, approve the sign-in. In Claude: Settings, Connectors, add custom connector. In Claude Code: `npx add-mcp https://rxresu.me/mcp --name reactive-resume -a claude-code -g`, then run `/mcp` and choose reactive-resume to sign in (this is the command in the Reactive Resume docs). In ChatGPT the custom-connector steps are not verified for this skill: if the option is missing or unclear, say so and offer plain files.
 3. Optional account settings and API keys: https://rxresu.me/dashboard/settings/developer. Never paste a key into the chat or a shared file.
 4. Test: call `list_resumes`. If it returns a list (even an empty one), it works. If it errors, retry once, then offer plain files.
 

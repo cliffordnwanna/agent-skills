@@ -22,7 +22,9 @@ Take a pasted posting (or several), read the user's real background, and hand ba
 
 ## Setup
 
-**First run for a new user** (this skill is for anyone: never assume the user's field, country, language or goals) (no saved preferences, or the user says "set me up"): follow `references/onboarding.md`. It is a short guided setup that never blocks: the user can answer "skip" to any part and move on. It covers (1) where their background comes from, (2) the six preference questions, (3) the contact details a CV needs, (4) whether to use Reactive Resume or plain files, with step-by-step help if they want it.
+**First run for a new user** (this skill is for anyone: never assume the user's field, country, language or goals) (no saved preferences, or the user says "set me up"): follow `references/onboarding.md`. It is a short guided setup that never blocks: the user can answer "skip" to any part and move on. It covers (1) where their background comes from, (2) the preference questions in `references/preferences-intake.md` (asked in one message, including the contact details a CV needs), (3) a check for anything still missing, (4) whether to use Reactive Resume or plain files, with step-by-step help if they want it.
+
+**Where `private/` lives:** it means a folder in the user's own workspace, gitignored and never shared. It is not inside the installed skill. If the client has no file storage, keep the information in the conversation and give the user the text to save themselves.
 
 **Every run:**
 1. Load the saved preferences (`private/preferences.md`, or the text the user pasted or that is saved in this chat or project). If none exist, run onboarding. Also look for `private/achievements.md`. It is optional: a missing file is never a reason to stop or to refuse. Work from the portfolio evidence, and ask for a missing outcome or figure only where it would clearly improve the application. Offer once, at the end, to save new facts the user gave you.
@@ -53,7 +55,7 @@ Do all of this in one pass, then present one review screen:
 2. **Screen** (`eligibility-rules.md`, `legitimacy-checklist.md`, `pay-check.md`). Flags only (OK, Unknown, Flag), kept internal unless something needs the user's attention. Use web research (the client's built-in search and page reading) to verify the company and any current figures.
 3. **Match** requirements to the user's evidence (`role-and-keyword-expansion.md`). Pick the strongest angle yourself. Do not wait for the user.
 4. **Build everything in one pass, with no approval step:** answers to the posting's questions (`answer-bank.md`), one tailored CV (`cv-rules.md`) and one cover letter (`cover-letter-voice.md`). Interview pack, company brief and fit table only on request.
-5. **Validate, then deliver.** Assemble the data as typed JSON and validate it (`references/structured-output.md`, `schemas/models.py`, `scripts/validate_output.py`) before generating files. Deliver in the output format below.
+5. **Validate, then deliver.** Assemble the data as typed JSON and validate it (`references/structured-output.md`, `schemas/models.py`, `scripts/validate_output.py`) before generating files. The validator is a heuristic safety net, not a guarantee: the truth rule is yours to follow. Deliver in the output format below.
 
 **Careful mode** (only when the user says "careful"): add checkpoints. Show three angles and wait; show the CV text and wait for approval before building; give three cover letter versions to choose from.
 
@@ -68,11 +70,11 @@ The user has already chosen this job. The analysis exists only to keep them safe
 5. **Missing information**: a short list of what the user must supply (for example transcript, GPA, enrolment, notice period, a result for a bullet).
 6. **Other warnings** (country restriction, pay below floor, currency mismatch, unusual requests), one line each, only if present.
 7. **Improve next (max 3 bullets):** the most useful improvements this application revealed: skills the posting wanted that the user lacks (in the posting's wording), and one fix to their CV, portfolio or evidence. Append skills to the user's private `private/skills-to-learn.csv` (columns: date, company, role, skill, how_often_seen). If it does not exist, create it from `templates/skills-to-learn.csv`. Never write to the templates themselves. When a skill has appeared in 3 or more postings, tell the user it is a priority and suggest one small project to learn it.
-8. **Next steps** (apply link, deadline, tracker row, the one pay or sponsorship question if unstated), five lines at most.
+8. **Next steps** (apply link, deadline, tracker row, the one pay or sponsorship question if unstated), five lines at most. This is the short form of the action plan below; give the full action plan, including outreach drafts, only when the user asks for it (and never outreach for a high-risk posting).
 
 ## Files
 
-Always give each generated document as its **own downloadable file**: CV (PDF and DOCX), cover letter (PDF and DOCX), application answers, tracker CSV. **Never bundle application documents into a ZIP archive.** The user must be able to open and download each file separately.
+Always give each generated document as its **own downloadable file**: CV, cover letter, application answers, tracker CSV. Give DOCX for editing and PDF where the client can produce it (`scripts/render_docs.py` writes DOCX and, with `--pdf`, PDF if LibreOffice is installed; if no PDF tool exists, say so and give DOCX). **Never bundle application documents into a ZIP archive.** The user must be able to open and download each file separately.
 
 Heavy requirements are never a reason to hold back. Apply honestly with the experience they have, and let the gaps feed the Improve next list. Give the longer analysis (fit table, company brief, interview pack) only if the user asks to "explain", "analyse" or "go careful".
 
@@ -89,7 +91,7 @@ Heavy requirements are never a reason to hold back. Apply honestly with the expe
 2. Ask which jobs to proceed with (by number, "all", or "all Strong and Possible"). If the user already said to do them all, don't ask.
 3. **Tier 2, for the selected jobs.** Produce each package in the apply-fast output format above, one after another, in parallel where possible, and deliver one package per job plus a combined tracker summary.
 
-## Action plan (end of every job)
+## Action plan (end of every job; full list on request, five-line short form by default)
 
 1. Apply link and deadline.
 2. Tracker entry with a follow-up date (default 7 days) and the next action. With Reactive Resume connected, create it there; otherwise append a row to the user's private `private/applications-tracker.csv`, created from `templates/applications-tracker.csv` if missing (never write to the templates), or tell the user the row to add to their own sheet.
@@ -104,14 +106,14 @@ Not part of this version. Planned for later as drafts first, then individually a
 
 ## Deliverables per job
 
-- **CV** (PDF and DOCX) and a plain-text copy.
+- **CV** (DOCX, plus PDF where available) and a plain-text copy.
 - **Cover letter** (PDF or DOCX, plus paste-ready text).
 - **Application answers** (text).
 - **Decision summary** with fit table and company brief, only on request.
-- **Outreach drafts** and **action plan**.
+- **Outreach drafts** and the full **action plan**, on request (never outreach for a high-risk posting).
 - **Interview pack** on request.
 
-Name files `<Company> - <Role> - <YYYY-MM-DD>`.
+Name files `<Company> - <Role> - <YYYY-MM-DD> - <Document>` (`render_docs.py` does this and strips characters that are illegal in file names).
 
 ## Learning
 
