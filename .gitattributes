@@ -1,0 +1,2 @@
+# Never convert line endings in the pinned benchmark files: their SHA-256 hashes are recorded in provenance.json.
+skills/rag-eval-kit/benchmarks/** -text
