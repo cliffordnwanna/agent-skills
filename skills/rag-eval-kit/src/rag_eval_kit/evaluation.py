@@ -25,11 +25,19 @@ SEMANTIC_METRICS = (
 )
 
 
-def _retrieval_metrics(record: EvaluationRecord) -> dict[str, float | None]:
+def _retrieval_metrics(
+    record: EvaluationRecord, hit_level: str = "document"
+) -> dict[str, float | None]:
     expected = set(record.expected_source_ids)
     if not expected:
         return {key: None for key in LEXICAL_METRICS[:4]}
-    retrieved = record.retrieved_source_ids
+    # Document level (the default): a document that fills several result slots with different
+    # chunks counts once, in the position of its first chunk. Chunk level keeps repeats.
+    retrieved = (
+        list(dict.fromkeys(record.retrieved_source_ids))
+        if hit_level == "document"
+        else record.retrieved_source_ids
+    )
     relevant_ranks = [
         index for index, source_id in enumerate(retrieved, 1) if source_id in expected
     ]
@@ -61,9 +69,12 @@ def evaluate_lexical(
     target_revision: str,
     dataset_hash: str,
     corpus_hash: str,
+    hit_level: str = "document",
 ) -> dict[str, Any]:
     if not records:
         raise ValueError("Evaluation requires at least one prediction record")
+    if hit_level not in {"document", "chunk"}:
+        raise ValueError("hit_level must be 'document' or 'chunk'")
     valid: list[EvaluationRecord] = []
     invalid: list[dict[str, Any]] = []
     for record in records:
@@ -87,7 +98,7 @@ def evaluate_lexical(
     for question_id, question_records in sorted(grouped.items()):
         by_metric: dict[str, list[float]] = defaultdict(list)
         for record in question_records:
-            metrics = _retrieval_metrics(record)
+            metrics = _retrieval_metrics(record, hit_level)
             abstention = _abstention_metric(record)
             metrics["abstention_accuracy"] = abstention
             for name, value in metrics.items():
@@ -111,6 +122,7 @@ def evaluate_lexical(
         "evaluator_revision": evaluator_revision(),
         "status": "completed" if valid else "no_valid_records",
         "retrieval_mode": "lexical",
+        "hit_level": hit_level,
         "target_revision": target_revision,
         "dataset_hash": dataset_hash,
         "corpus_hash": corpus_hash,
@@ -130,7 +142,13 @@ def evaluate_lexical(
         "per_question": per_question,
         "invalid_records": invalid,
         "warnings": [
-            "Lexical retrieval metrics do not measure semantic relevance or answer quality."
+            "Lexical retrieval metrics do not measure semantic relevance or answer quality.",
+            (
+                "Hit@k, Recall@3 and MRR are document-level: several chunks from one document "
+                "count once."
+                if hit_level == "document"
+                else "Hit@k, Recall@3 and MRR are chunk-level: repeated documents are not merged."
+            ),
         ],
     }
 
@@ -315,7 +333,7 @@ def compare_runs(
 ) -> dict[str, Any]:
     if baseline.get("status") != "completed" or candidate.get("status") != "completed":
         raise ValueError("Both runs must be completed before comparison")
-    compatibility_fields = ("dataset_hash", "corpus_hash", "retrieval_mode", "judge")
+    compatibility_fields = ("dataset_hash", "corpus_hash", "retrieval_mode", "judge", "hit_level")
     mismatches = [
         field for field in compatibility_fields if baseline.get(field) != candidate.get(field)
     ]

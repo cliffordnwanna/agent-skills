@@ -13,6 +13,7 @@ from rag_eval_kit.adapters.base import (
     AdapterError,
     extract_optional_path,
     extract_path,
+    optional_number,
     response_text,
     string_list,
 )
@@ -36,6 +37,12 @@ class GenericHTTPConfig(BaseModel):
     max_response_bytes: int = Field(default=1_000_000, ge=1024, le=10_000_000)
     max_retries: int = Field(default=2, ge=0, le=3)
     retry_backoff_seconds: float = Field(default=0.2, ge=0, le=5)
+    input_tokens_path: str | None = Field(default=None, max_length=256)
+    output_tokens_path: str | None = Field(default=None, max_length=256)
+    total_tokens_path: str | None = Field(default=None, max_length=256)
+    app_latency_ms_path: str | None = Field(
+        default=None, max_length=256, description="Optional: time the app reports, in milliseconds"
+    )
     request: dict[str, Any] | None = Field(
         default=None,
         description=(
@@ -132,16 +139,27 @@ class GenericHTTPAdapter:
 
     def fetch(self, case: EvaluationCase) -> Any:
         """Send one question and return the parsed JSON response body."""
+        return self._exchange(case)[0]
+
+    def _exchange(self, case: EvaluationCase) -> tuple[Any, int]:
+        """Send one question. Returns (parsed JSON body, number of HTTP attempts used)."""
         payload = build_payload(self.config, case)
         headers = resolve_headers(self.config.headers)
         response = None
+        attempts = 0
         for attempt in range(self.config.max_retries + 1):
             last = attempt == self.config.max_retries
+            attempts += 1
             try:
                 response = self.client.post(url_for(self.config), json=payload, headers=headers)
             except httpx.HTTPError as error:
                 if last:
-                    raise AdapterError(f"HTTP request failed ({type(error).__name__})") from None
+                    raise AdapterError(
+                        f"HTTP request failed ({type(error).__name__})",
+                        kind="timeout"
+                        if isinstance(error, httpx.TimeoutException)
+                        else "connection",
+                    ) from None
             else:
                 if response.status_code not in RETRYABLE_STATUS_CODES or last:
                     break
@@ -154,10 +172,38 @@ class GenericHTTPAdapter:
             body = response.json()
         except ValueError:
             raise AdapterError("HTTP target returned invalid JSON") from None
-        return body
+        return body, attempts
 
     def predict(self, case: EvaluationCase, target_revision: str) -> EvaluationRecord:
-        return self.parse(case, self.fetch(case), target_revision)
+        """Ask one question. Latency is client-side wall-clock (monotonic), retries included."""
+        started = time.perf_counter()
+        body, attempts = self._exchange(case)
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        record = self.parse(case, body, target_revision)
+        return record.model_copy(
+            update={"latency_ms": round(elapsed_ms, 3), "attempts": attempts, **self._usage(body)}
+        )
+
+    def _usage(self, body: Any) -> dict[str, int | float | None]:
+        """Optional token counts and app-reported timing. Missing or odd values become None."""
+
+        def read(path: str | None) -> int | float | None:
+            if path is None:
+                return None
+            try:
+                return optional_number(extract_path(body, path))
+            except AdapterError:
+                return None
+
+        def whole(value: int | float | None) -> int | None:
+            return None if value is None else int(value)
+
+        return {
+            "input_tokens": whole(read(self.config.input_tokens_path)),
+            "output_tokens": whole(read(self.config.output_tokens_path)),
+            "total_tokens": whole(read(self.config.total_tokens_path)),
+            "app_latency_ms": read(self.config.app_latency_ms_path),
+        }
 
     def parse(self, case: EvaluationCase, body: Any, target_revision: str) -> EvaluationRecord:
         """Turn a JSON response into a record using the configured response paths."""

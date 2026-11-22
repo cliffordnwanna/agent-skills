@@ -260,3 +260,60 @@ def test_output_inside_the_target_repo_must_be_git_ignored(project):
     assert done.exit_code == 0, done.output
     assert summary["status"] == "completed"
     assert (project.target / "ragkit-out" / "dev" / "run-lexical.json").exists()
+
+
+def test_run_applies_ceilings_from_thresholds_yaml(project):
+    project.freeze_dataset()
+    (project.root / "thresholds.yaml").write_text(
+        "ceilings:\n  latency_p95_ms: 600000\n  error_rate: 0.0\n  invalid_rate: 0.0\n",
+        encoding="utf-8",
+    )
+    project.write_config(thresholds="thresholds.yaml")
+    result, out = project.run()
+    assert result.exit_code == 0, result.output
+    assert out["status"] == "completed" and out["ceilings"] == "met"
+    run = json.loads((project.out / "dev" / "run-lexical.json").read_text(encoding="utf-8"))
+    assert run["observability"]["error_rate"]["status"] == "VERIFIED"
+    assert run["observability"]["latency_ms"]["status"] == "VERIFIED"
+    assert "latency_p95_ms" in (project.out / "dev" / "report.md").read_text(encoding="utf-8")
+
+
+def test_allow_failures_scores_the_rest_and_counts_the_failures(project):
+    project.freeze_dataset()
+    questions = json.loads((project.dataset / "freeze.json").read_text(encoding="utf-8"))["counts"][
+        "dev"
+    ]
+    assert questions >= 2
+    failing = make_server(fail_first=1)  # the first question fails, the rest work
+    serve_in_thread(failing)
+    try:
+        port = failing.server_address[1]
+        project.adapter.write_text(
+            json.dumps({"base_url": f"http://127.0.0.1:{port}", "max_retries": 0}),
+            encoding="utf-8",
+        )
+        blocked, why = project.run()
+        assert blocked.exit_code == 2 and "--allow-failures" in why["reason"]
+        assert not (project.out / "dev" / "predictions.jsonl").exists()  # no half-done file
+        # Start clean (the first server already used its one failure) and allow failures.
+        failing.shutdown()
+        failing.server_close()
+        failing = make_server(fail_first=1)
+        serve_in_thread(failing)
+        port = failing.server_address[1]
+        project.adapter.write_text(
+            json.dumps({"base_url": f"http://127.0.0.1:{port}", "max_retries": 0}),
+            encoding="utf-8",
+        )
+        for leftover in (project.out / "dev").glob("*"):
+            leftover.unlink()
+        done, out = project.run("--allow-failures")
+    finally:
+        failing.shutdown()
+        failing.server_close()
+    assert done.exit_code == 0, done.output
+    assert out["status"] == "completed"
+    run = json.loads((project.out / "dev" / "run-lexical.json").read_text(encoding="utf-8"))
+    errors = run["observability"]["error_rate"]
+    assert errors["failed"] == 1 and errors["attempted"] == questions
+    assert errors["rate"] == pytest.approx(1 / questions)

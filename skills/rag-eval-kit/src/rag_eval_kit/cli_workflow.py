@@ -205,6 +205,13 @@ def register(app: typer.Typer) -> None:
             bool, typer.Option(help="Builder only: require live semantic mode.")
         ] = False,
         concurrency: Annotated[int, typer.Option(min=1, max=5)] = 1,
+        allow_failures: Annotated[
+            bool,
+            typer.Option(
+                "--allow-failures",
+                help="Exit 0 even if some questions failed (they are still listed and counted).",
+            ),
+        ] = False,
     ) -> None:
         """Ask the target app every question and write portable predictions; failures are listed."""
         from rag_eval_kit.adapters.builder import BuilderHTTPAdapter, BuilderHTTPConfig
@@ -233,15 +240,20 @@ def register(app: typer.Typer) -> None:
             client.close()
         if records:
             write_jsonl(output, records)
+        failures_file = output.with_name(output.stem + ".failures.json")
+        failures_file.write_text(
+            json.dumps({"attempted": len(cases), "failed": failures}, indent=2), encoding="utf-8"
+        )
         _emit(
             {
                 "status": "completed" if not failures else "completed_with_failures",
                 "predictions": len(records),
                 "failed": failures,
                 "output": str(output) if records else None,
+                "failures_file": str(failures_file),
             }
         )
-        if failures:
+        if failures and not allow_failures:
             raise typer.Exit(1)
 
     @app.command("init")
@@ -404,10 +416,21 @@ def register(app: typer.Typer) -> None:
         dry_run: Annotated[
             bool, typer.Option(help="Show the commands that would run; change nothing.")
         ] = False,
+        allow_failures: Annotated[
+            bool,
+            typer.Option(
+                "--allow-failures",
+                help="Score the questions that worked and count the failures as the error rate.",
+            ),
+        ] = False,
     ) -> None:
         """Run the free offline pipeline from ragkit.yaml. Stops at human steps; resumes."""
         summary = run_pipeline(
-            config, split=split, confirm_heldout=confirm_heldout, dry_run=dry_run
+            config,
+            split=split,
+            confirm_heldout=confirm_heldout,
+            dry_run=dry_run,
+            allow_failures=allow_failures,
         )
         _emit(summary)
         if summary["status"] == "blocked":

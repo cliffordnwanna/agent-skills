@@ -41,6 +41,8 @@ class RunConfig(BaseModel):
     dataset: Path
     revision: str | None = Field(default=None, min_length=1, max_length=200)
     output: Path = Path("ragkit-out")
+    pricing: Path | None = Field(default=None, description="Prices of the app, for a cost estimate")
+    thresholds: Path | None = Field(default=None, description="thresholds.yaml with ceilings")
 
 
 class PipelineError(ValueError):
@@ -72,6 +74,10 @@ def load_config(path: Path) -> tuple[RunConfig, Path]:
     config.corpus = rooted(config.corpus)
     config.dataset = rooted(config.dataset)
     config.output = rooted(config.output)
+    for name in ("pricing", "thresholds"):
+        value = getattr(config, name)
+        if value is not None:
+            setattr(config, name, rooted(value))
     return config, base
 
 
@@ -130,7 +136,12 @@ DATASET_HELP = [
 
 
 def run_pipeline(
-    config_path: Path, *, split: Split = "dev", confirm_heldout: bool = False, dry_run: bool = False
+    config_path: Path,
+    *,
+    split: Split = "dev",
+    confirm_heldout: bool = False,
+    dry_run: bool = False,
+    allow_failures: bool = False,
 ) -> dict:
     """Run the lexical pipeline. Returns a JSON-able summary; ``status`` says why it stopped."""
     stages: list[dict] = []
@@ -220,6 +231,9 @@ def run_pipeline(
     ]  # fmt: skip
     if config.target.adapter == "builder":
         predict_args += ["--corpus-dir", str(config.corpus)]
+    if allow_failures:
+        predict_args += ["--allow-failures"]
+    failures_file = preds.with_name(preds.stem + ".failures.json")
     evaluate_args = [
         "evaluate", str(preds),
         "--output", str(run_file),
@@ -232,6 +246,10 @@ def run_pipeline(
         evaluate_args += ["--target-repo", str(config.target.repo)]
     else:
         evaluate_args += ["--allow-unverified-target"]
+    if config.pricing is not None:
+        evaluate_args += ["--pricing", str(config.pricing)]
+    if config.thresholds is not None:
+        evaluate_args += ["--thresholds", str(config.thresholds)]
     report_args = ["report", str(run_file), "--output", str(report_file)]
 
     if dry_run:
@@ -255,7 +273,13 @@ def run_pipeline(
     out.mkdir(parents=True, exist_ok=True)
 
     if preds.exists():
-        if _count_lines(preds) != cases:
+        failed_before = 0
+        if failures_file.exists():
+            try:
+                failed_before = len(json.loads(failures_file.read_text(encoding="utf-8"))["failed"])
+            except (OSError, ValueError, KeyError, TypeError):
+                failed_before = 0
+        if _count_lines(preds) + failed_before != cases:
             return result(
                 "blocked",
                 reason=f"{preds} does not have one prediction per question. Move it away to "
@@ -277,13 +301,17 @@ def run_pipeline(
                 preds.replace(partial)
             return result(
                 "blocked",
-                reason="The target failed on some questions. Failed questions are never dropped.",
+                reason="The target failed on some questions. Failed questions are never "
+                "dropped. To score the rest and count the failures, run again with "
+                "--allow-failures.",
                 failed_stage="predict",
                 command=_shown(*predict_args),
                 detail=(stdout or stderr)[-1500:],
             )
         stage("predict", "done", command=_shown(*predict_args), file=str(preds))
 
+    if failures_file.exists() and "--failures" not in evaluate_args:
+        evaluate_args += ["--failures", str(failures_file)]
     if run_file.exists():
         stage("evaluate", "skipped_already_done", file=str(run_file))
     else:
@@ -310,9 +338,15 @@ def run_pipeline(
             )
         stage("report", "done", command=_shown(*report_args), file=str(report_file))
 
+    ceilings = None
+    try:
+        ceilings = json.loads(run_file.read_text(encoding="utf-8")).get("ceiling_check")
+    except (OSError, ValueError):
+        pass
     return result(
         "completed",
         paid_calls=0,
+        **({"ceilings": ceilings["overall"]} if ceilings else {}),
         next_steps=[
             "This run used the free lexical track (source matching only).",
             "Paid judge scoring is a separate step you approve yourself: "

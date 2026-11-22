@@ -4,7 +4,18 @@ from typing import Any
 
 
 class AdapterError(RuntimeError):
-    pass
+    """A target-app failure. ``kind`` is "timeout", "connection" or "error"."""
+
+    def __init__(self, message: str, *, kind: str = "error") -> None:
+        super().__init__(message)
+        self.kind = kind
+
+
+def optional_number(value: Any) -> int | float | None:
+    """A non-negative number reported by the app, or None. Never raises."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    return value if value >= 0 and value == value else None
 
 
 def extract_path(value: Any, path: str) -> Any:

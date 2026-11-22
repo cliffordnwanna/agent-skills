@@ -16,6 +16,7 @@ def markdown_report(run: dict[str, Any]) -> str:
         f"- Dataset SHA-256: `{run.get('dataset_hash', 'unknown')}`",
         f"- Corpus SHA-256: `{run.get('corpus_hash', 'unknown')}`",
         f"- Judge: `{(run.get('judge') or {}).get('model', 'not used')}`",
+        *([f"- Hit@k level: `{run['hit_level']}`"] if run.get("hit_level") else []),
         "",
         "## Results",
         "",
@@ -64,6 +65,7 @@ def markdown_report(run: dict[str, Any]) -> str:
             f"- `{item['question_id']}` repeat {item['repeat']}: {item['reason']}"
             for item in unassessable
         )
+    lines.extend(_operational_lines(run))
     budget = run.get("budget")
     if budget:
         lines.extend(
@@ -83,6 +85,72 @@ def markdown_report(run: dict[str, Any]) -> str:
         lines.extend(f"- {warning}" for warning in warnings)
     lines.append("")
     return "\n".join(lines)
+
+
+def _ms(value: Any) -> str:
+    return "n/a" if value is None else f"{value:.1f} ms"
+
+
+def _percent(value: Any) -> str:
+    return "unknown" if value is None else f"{value * 100:.1f}%"
+
+
+def _operational_lines(run: dict[str, Any]) -> list[str]:
+    obs = run.get("observability")
+    if not obs:
+        return []
+    lat, errors, invalid = obs["latency_ms"], obs["error_rate"], obs["invalid_rate"]
+    lines = ["", "## Operational checks", ""]
+    if lat.get("status") == "VERIFIED":
+        small = " (small sample: p95 is close to the slowest answer)" if lat["low_sample"] else ""
+        lines.append(
+            f"- Latency, client-side, answered questions: p50 {_ms(lat['p50'])}, "
+            f"p95 {_ms(lat['p95'])}, max {_ms(lat['max'])}, n={lat['n']}{small}"
+        )
+    else:
+        lines.append(f"- Latency: not available ({lat.get('reason', 'not recorded')})")
+    app = obs["app_reported_latency_ms"]
+    if app.get("status") == "VERIFIED":
+        lines.append(
+            f"- App-reported time: p50 {_ms(app['p50'])}, p95 {_ms(app['p95'])}, n={app['n']}"
+        )
+    if errors["status"] == "VERIFIED":
+        lines.append(
+            f"- Error rate: {_percent(errors['rate'])} ({errors['failed']} of "
+            f"{errors['attempted']} questions failed, {errors['timeouts']} timeouts)"
+        )
+    else:
+        lines.append(f"- Error rate: unknown ({errors['reason']})")
+    lines.append(
+        f"- Invalid rate: {_percent(invalid['rate'])} "
+        f"({invalid['invalid']} of {invalid['total']} records)"
+    )
+    cost = obs["cost"]
+    if cost["status"] in {"ESTIMATED", "PARTIAL"}:
+        lines.append(
+            f"- Estimated cost of the app under test: ${float(cost['per_query_usd']):.6f} per "
+            f"query, ${float(cost['estimated_usd_total']):.6f} in total "
+            f"({cost['status'].lower()}; {cost['note']})"
+        )
+    else:
+        lines.append(f"- Estimated cost: unavailable ({cost['reason']})")
+    lines.extend(f"- Warning: {w}" for w in obs.get("warnings", []))
+    check = run.get("ceiling_check")
+    if check:
+        lines.extend(
+            ["", "## Ceilings", "", f"Overall: **{check['overall']}**", ""]
+            if check["checks"]
+            else ["", "## Ceilings", "", "No ceilings were set.", ""]
+        )
+        if check["checks"]:
+            lines.extend(["| Ceiling | Limit | Observed | Result |", "|---|---:|---:|---|"])
+            for item in check["checks"]:
+                observed = "not available" if item["observed"] is None else f"{item['observed']:g}"
+                lines.append(
+                    f"| {item['ceiling']} | {item['limit']:g} | {observed} | {item['result']} |"
+                )
+        lines.extend(f"- {note}" for note in check.get("notes", []))
+    return lines
 
 
 def comparison_markdown_report(comparison: dict[str, Any]) -> str:

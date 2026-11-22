@@ -17,8 +17,15 @@ import typer
 from rag_eval_kit import __version__
 from rag_eval_kit.adapters.files import read_jsonl
 from rag_eval_kit.budget import BudgetLedger
+from rag_eval_kit.ceilings import ThresholdsError, check_ceilings, load_thresholds
 from rag_eval_kit.config import JudgeConfig
 from rag_eval_kit.evaluation import compare_runs, evaluate_lexical, evaluate_semantic
+from rag_eval_kit.observability import (
+    ObservabilityError,
+    build_observability,
+    load_failures,
+    load_pricing,
+)
 from rag_eval_kit.privacy import configure_local_runtime
 from rag_eval_kit.provenance import evaluator_revision
 from rag_eval_kit.reporting import markdown_report
@@ -275,6 +282,28 @@ def evaluate(
         typer.Option("--budget-usd", help="Per-run USD cap; otherwise use RAGKIT_BUDGET_USD."),
     ] = None,
     repeats: Annotated[int, typer.Option(min=1, max=5)] = 3,
+    failures: Annotated[
+        Path | None,
+        typer.Option(
+            exists=True,
+            dir_okay=False,
+            help="Failures file written next to the predictions; enables the error rate.",
+        ),
+    ] = None,
+    pricing: Annotated[
+        Path | None,
+        typer.Option(
+            exists=True, dir_okay=False, help="Prices of the app under test, for a cost estimate."
+        ),
+    ] = None,
+    thresholds: Annotated[
+        Path | None,
+        typer.Option(exists=True, dir_okay=False, help="thresholds.yaml with ceilings to check."),
+    ] = None,
+    hit_level: Annotated[
+        Literal["document", "chunk"],
+        typer.Option(help="Lexical Hit@k level: document merges repeated chunks of one document."),
+    ] = "document",
 ) -> None:
     """Score portable JSONL predictions; lexical is offline, semantic is paid and opt-in."""
     configure_local_runtime()
@@ -331,6 +360,14 @@ def evaluate(
         records = read_jsonl(predictions)
     except Exception as error:
         emit({"status": "invalid_predictions", "error_type": type(error).__name__})
+        raise typer.Exit(2) from None
+
+    try:
+        failure_info = load_failures(failures) if failures else None
+        price_info = load_pricing(pricing) if pricing else None
+        ceiling_info = load_thresholds(thresholds) if thresholds else None
+    except (ObservabilityError, ThresholdsError) as error:
+        emit({"status": "blocked", "reason": str(error)})
         raise typer.Exit(2) from None
 
     settings = None
@@ -396,8 +433,14 @@ def evaluate(
                 target_revision=target_revision,
                 dataset_hash=dataset_hash,
                 corpus_hash=corpus_hash,
+                hit_level=hit_level,
             )
         run["target_check"] = target_check
+        run["observability"] = build_observability(
+            records, counts=run.get("counts", {}), failures=failure_info, pricing=price_info
+        )
+        if ceiling_info is not None:
+            run["ceiling_check"] = check_ceilings(run["observability"], ceiling_info.ceilings)
         if target_check["working_tree"] != "clean":
             run.setdefault("warnings", []).append(
                 "Target revision was caller-supplied and its repository state was not verified."
