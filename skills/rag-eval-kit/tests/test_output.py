@@ -288,3 +288,9 @@ def test_json_mode_prints_exactly_what_it_always_did(capsys):
     os.environ["RAGKIT_OUTPUT"] = "json"
     output.emit({"status": "frozen", "counts": {"golden": 3}})
     assert json.loads(capsys.readouterr().out) == {"status": "frozen", "counts": {"golden": 3}}
+
+
+def test_long_paths_are_never_split_across_lines():
+    long_path = "/very/long/folder/" + "x" * 120 + "/ragkit-out"
+    text = output.render({"status": "blocked", "reason": f"The folder ({long_path}) is bad."})
+    assert long_path in text  # one unbroken token, even though it is wider than the line

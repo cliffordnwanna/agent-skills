@@ -47,7 +47,14 @@ def _mark(kind: str) -> str:
 
 
 def _wrap(text: str, indent: str = "  ") -> list[str]:
-    return textwrap.wrap(str(text), WIDTH, initial_indent=indent, subsequent_indent=indent) or [""]
+    return textwrap.wrap(
+        str(text),
+        WIDTH,
+        initial_indent=indent,
+        subsequent_indent=indent,
+        break_long_words=False,  # never split a path or a command in the middle
+        break_on_hyphens=False,
+    ) or [""]
 
 
 def _score(value: Any) -> str:
@@ -78,7 +85,14 @@ def _wrap_item(text: str) -> list[str]:
     """Wrap a numbered step so continuation lines line up under the text."""
     head = text.split(" ", 1)[0]
     hanging = "     " if head.rstrip(".").isdigit() else "  "
-    return textwrap.wrap(text, WIDTH, initial_indent="  ", subsequent_indent=hanging)
+    return textwrap.wrap(
+        text,
+        WIDTH,
+        initial_indent="  ",
+        subsequent_indent=hanging,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
 
 
 def _plain_paths(command: str) -> str:
