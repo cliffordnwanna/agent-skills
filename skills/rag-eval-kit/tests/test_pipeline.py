@@ -207,7 +207,13 @@ def test_unknown_setting_is_rejected(project):
 def test_changed_dataset_is_refused(project):
     project.freeze_dataset()
     dev = project.dataset / "dev.jsonl"
-    dev.write_text(dev.read_text(encoding="utf-8").replace("alpha", "ALPHA", 1), encoding="utf-8")
+    original = dev.read_bytes()
+    # Edit the first question's text, in bytes so no platform rewrites line endings. Assert the
+    # edit really happened: an earlier version replaced a word that is not in the dev split, so on
+    # Linux nothing changed (on Windows the line-ending rewrite alone made the test pass).
+    tampered = original.replace(b'"question":"', b'"question":"EDITED ', 1)
+    assert tampered != original and tampered.count(b"\n") == original.count(b"\n")
+    dev.write_bytes(tampered)
     result, out = project.run()
     assert result.exit_code == 2 and "changed since it was frozen" in out["reason"]
 
