@@ -28,6 +28,9 @@ dev = ["pytest==9.2.0", "ruff==0.17.5"]
 [tool.hatch.build.targets.wheel]
 packages = ["src/rag_eval_kit"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"skill" = "rag_eval_kit/skill_data"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

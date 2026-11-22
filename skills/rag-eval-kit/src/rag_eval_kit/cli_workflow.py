@@ -19,6 +19,7 @@ from rag_eval_kit.own_data import (
 )
 from rag_eval_kit.pipeline import run_pipeline
 from rag_eval_kit.predict import read_cases, run_predictions
+from rag_eval_kit.scaffold import DEFAULT_SKILL_PARENT, InitError, copy_skill, write_starter_files
 
 
 def _emit(value: dict) -> None:
@@ -242,6 +243,67 @@ def register(app: typer.Typer) -> None:
         )
         if failures:
             raise typer.Exit(1)
+
+    @app.command("init")
+    def init_command(
+        directory: Annotated[
+            Path, typer.Option(file_okay=False, help="Where to write the starter files.")
+        ] = Path("."),
+        skill_dir: Annotated[
+            Path | None,
+            typer.Option(
+                file_okay=False,
+                help="Copy the agent skill into this skills folder. Giving this is your consent.",
+            ),
+        ] = None,
+        no_skill: Annotated[
+            bool, typer.Option("--no-skill", help="Do not ask about the agent skill.")
+        ] = False,
+    ) -> None:
+        """Write a starter ragkit.yaml and adapter.json. Never overwrites. Skill is optional."""
+        try:
+            written = write_starter_files(directory)
+        except (InitError, OSError) as error:
+            _fail(str(error))
+        skill_info: dict = {"copied": False}
+        try:
+            chosen = skill_dir
+            if chosen is None and not no_skill:
+                try:
+                    wants = typer.confirm(
+                        "Copy the rag-eval-kit agent skill into your agent's skills folder? "
+                        "It is optional. Nothing is copied unless you say yes.",
+                        default=False,
+                        err=True,
+                    )
+                    if wants:
+                        chosen = Path(
+                            typer.prompt(
+                                "Your agent's skills folder", default=DEFAULT_SKILL_PARENT, err=True
+                            )
+                        )
+                except typer.Abort:
+                    chosen = None  # no answer is a no
+            if chosen is not None:
+                skill_info = {"copied": True, "path": str(copy_skill(chosen))}
+        except (InitError, OSError) as error:
+            _emit({"status": "init_partial", "written": written, "skill_error": str(error)})
+            raise typer.Exit(2) from None
+        _emit(
+            {
+                "status": "initialised",
+                "written": written,
+                "skill": skill_info,
+                "next_steps": [
+                    "Edit adapter.json to match your app, then: "
+                    "ragkit adapter test --adapter-config adapter.json",
+                    "Put your documents in a folder and run: ragkit corpus init <folder> ...",
+                    "Bring your questions: ragkit dataset import ... "
+                    "(a person must then approve them)",
+                    "Edit ragkit.yaml, then run: ragkit run",
+                ],
+            }
+        )
 
     @adapter_app.command("test")
     def adapter_test(

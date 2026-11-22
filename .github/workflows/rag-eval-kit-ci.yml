@@ -45,3 +45,9 @@ jobs:
       - run: uv run ragkit smoke
       - run: uv run ragkit corpus inspect benchmarks/fastapi-docs
       - run: uv build
+      - name: Wheel carries the skill and no test files
+        run: >-
+          uv run python -c "import glob, zipfile;
+          names = zipfile.ZipFile(glob.glob('dist/*.whl')[0]).namelist();
+          assert 'rag_eval_kit/skill_data/SKILL.md' in names;
+          assert not any(n.startswith('tests/') for n in names)"
