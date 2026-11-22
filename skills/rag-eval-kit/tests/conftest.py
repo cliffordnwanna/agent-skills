@@ -15,6 +15,15 @@ for key, value in {
 for key in ("OPENAI_API_KEY", "RAGKIT_OPENAI_API_KEY", "CONFIDENT_API_KEY"):
     os.environ.pop(key, None)
 
+# Make CLI help output identical on every machine. GitHub Actions (GITHUB_ACTIONS) and the
+# colour-forcing variables make Typer/Rich emit ANSI codes even when output is captured, which
+# splits option names such as "--budget-usd" across escape sequences and breaks substring
+# assertions. Typer reads these at import time, so they are set before any test imports the CLI.
+for key in ("GITHUB_ACTIONS", "FORCE_COLOR", "PY_COLORS", "CLICOLOR_FORCE"):
+    os.environ.pop(key, None)
+os.environ["NO_COLOR"] = "1"
+os.environ["TERM"] = "dumb"
+
 
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
