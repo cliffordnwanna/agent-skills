@@ -2,7 +2,7 @@
 
 Repository: [CONVERSATIONAL_AGENT_BUILDER](https://github.com/cliffordnwanna/CONVERSATIONAL_AGENT_BUILDER).
 
-> **Which tag.** The plumbing proof below was run at the existing tag **`baseline-v1`** (commit `971461d`). The real case study will use **`baseline-v2`**, which **does not exist yet (UNVERIFIED)**. Wherever a step says `baseline-v1`, use `baseline-v2` for the real evaluation once it has been created and checked.
+> **Which tag.** The plumbing proof below was run at the existing tag **`baseline-v1`** (commit `971461d`). The real case study will use **`baseline-v2`** (commit `2af15d8`), which **now exists**; no evaluation has been run on it yet. Wherever a step says `baseline-v1`, use `baseline-v2` for the real evaluation. Its chat response adds per-turn timing and split token counts that this tool does not read yet (UNVERIFIED against a live response).
 
 Copy-paste PowerShell steps. Last run: 2026-11-22, Windows, Python 3.12 inside the tool environment, Node 24. The Builder steps were run at `baseline-v1`. The `ragkit` steps were run before the speed and cost measurements were added; those additions are marked below.
 
@@ -122,7 +122,7 @@ or the same steps by hand: `ragkit predict frozen\dev.jsonl --adapter builder ..
 **12. Compare once, on the held-out set.**
 
 ```powershell
-ragkit run --split heldout --confirm-heldout     # for baseline-v2 (UNVERIFIED: not created yet) and for after-fix-1, in separate output folders
+ragkit run --split heldout --confirm-heldout     # for baseline-v2 and for after-fix-1, in separate output folders
 ragkit compare baseline-run.json after-run.json --pass-metric <metric> --pass-threshold <value>
 ragkit report after-run.json --output report.md
 ```
