@@ -16,6 +16,7 @@ from rag_eval_kit.own_data import (
     init_corpus,
     read_question_file,
 )
+from rag_eval_kit.pipeline import run_pipeline
 from rag_eval_kit.predict import read_cases, run_predictions
 
 
@@ -236,6 +237,27 @@ def register(app: typer.Typer) -> None:
         )
         if failures:
             raise typer.Exit(1)
+
+    @app.command("run")
+    def run_command(
+        config: Annotated[
+            Path, typer.Option("--config", help="Settings file.", dir_okay=False)
+        ] = Path("ragkit.yaml"),
+        split: Annotated[Literal["dev", "heldout"], typer.Option()] = "dev",
+        confirm_heldout: Annotated[
+            bool, typer.Option(help="Required for --split heldout: it is for one final run.")
+        ] = False,
+        dry_run: Annotated[
+            bool, typer.Option(help="Show the commands that would run; change nothing.")
+        ] = False,
+    ) -> None:
+        """Run the free offline pipeline from ragkit.yaml. Stops at human steps; resumes."""
+        summary = run_pipeline(
+            config, split=split, confirm_heldout=confirm_heldout, dry_run=dry_run
+        )
+        _emit(summary)
+        if summary["status"] == "blocked":
+            raise typer.Exit(2)
 
     @app.command()
     def smoke() -> None:
