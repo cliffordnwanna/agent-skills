@@ -1,0 +1,590 @@
+{
+  "$defs": {
+    "Answer": {
+      "properties": {
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "fill_in": {
+          "description": "Facts the user must supply",
+          "items": {
+            "type": "string"
+          },
+          "title": "Fill In",
+          "type": "array"
+        }
+      },
+      "required": [
+        "question",
+        "answer"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "Bullet": {
+      "properties": {
+        "text": {
+          "minLength": 5,
+          "title": "Text",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "Portfolio item or user statement this comes from",
+          "minLength": 2,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "figure_confirmed": {
+          "default": false,
+          "description": "True only if the user supplied or confirmed any number",
+          "title": "Figure Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text",
+        "evidence"
+      ],
+      "title": "Bullet",
+      "type": "object"
+    },
+    "CV": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "links": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Links",
+          "type": "array"
+        },
+        "summary": {
+          "maxLength": 500,
+          "title": "Summary",
+          "type": "string"
+        },
+        "experience": {
+          "items": {
+            "$ref": "#/$defs/Role"
+          },
+          "title": "Experience",
+          "type": "array"
+        },
+        "projects": {
+          "items": {
+            "$ref": "#/$defs/Role"
+          },
+          "title": "Projects",
+          "type": "array"
+        },
+        "skills": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Skills",
+          "type": "array"
+        },
+        "education": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Education",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "summary",
+        "experience",
+        "skills"
+      ],
+      "title": "CV",
+      "type": "object"
+    },
+    "Flag": {
+      "properties": {
+        "check": {
+          "enum": [
+            "eligibility",
+            "legitimacy",
+            "pay",
+            "currency",
+            "timezone",
+            "other"
+          ],
+          "title": "Check",
+          "type": "string"
+        },
+        "level": {
+          "enum": [
+            "ok",
+            "unknown",
+            "flag",
+            "high_risk"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "The deciding line from the posting, or the source",
+          "minLength": 3,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        }
+      },
+      "required": [
+        "check",
+        "level",
+        "evidence"
+      ],
+      "title": "Flag",
+      "type": "object"
+    },
+    "ImproveItem": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "skill_to_learn",
+            "cv_fix",
+            "portfolio_fix",
+            "evidence_needed"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "ImproveItem",
+      "type": "object"
+    },
+    "Match": {
+      "properties": {
+        "requirement": {
+          "title": "Requirement",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "strong",
+            "transferable",
+            "gap"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "Portfolio or CV items that support it",
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "framing": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "True wording in the posting's language",
+          "title": "Framing"
+        }
+      },
+      "required": [
+        "requirement",
+        "status"
+      ],
+      "title": "Match",
+      "type": "object"
+    },
+    "Pay": {
+      "properties": {
+        "stated": {
+          "title": "Stated",
+          "type": "boolean"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "maxLength": 3,
+              "minLength": 3,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ISO 4217, e.g. USD",
+          "title": "Currency"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "enum": [
+                "hour",
+                "month",
+                "year",
+                "task",
+                "project"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "stated"
+      ],
+      "title": "Pay",
+      "type": "object"
+    },
+    "Posting": {
+      "properties": {
+        "company": {
+          "minLength": 1,
+          "title": "Company",
+          "type": "string"
+        },
+        "role": {
+          "minLength": 1,
+          "title": "Role",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "posted_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Posted Date"
+        },
+        "employment_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "employee",
+                "contractor",
+                "gig",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "unknown",
+          "title": "Employment Type"
+        },
+        "location_rule": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Quote of the posting's location restriction",
+          "title": "Location Rule"
+        },
+        "visa_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visa Text"
+        },
+        "pay": {
+          "$ref": "#/$defs/Pay"
+        },
+        "requirements": {
+          "items": {
+            "$ref": "#/$defs/Requirement"
+          },
+          "minItems": 1,
+          "title": "Requirements",
+          "type": "array"
+        },
+        "questions": {
+          "description": "Every question the posting or form asks",
+          "items": {
+            "type": "string"
+          },
+          "title": "Questions",
+          "type": "array"
+        },
+        "deadline": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadline"
+        }
+      },
+      "required": [
+        "company",
+        "role",
+        "pay",
+        "requirements"
+      ],
+      "title": "Posting",
+      "type": "object"
+    },
+    "Requirement": {
+      "properties": {
+        "text": {
+          "minLength": 3,
+          "title": "Text",
+          "type": "string"
+        },
+        "kind": {
+          "default": "must",
+          "enum": [
+            "must",
+            "nice"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "Requirement",
+      "type": "object"
+    },
+    "Role": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "organisation": {
+          "title": "Organisation",
+          "type": "string"
+        },
+        "period": {
+          "title": "Period",
+          "type": "string"
+        },
+        "bullets": {
+          "items": {
+            "$ref": "#/$defs/Bullet"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Bullets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "title",
+        "organisation",
+        "period",
+        "bullets"
+      ],
+      "title": "Role",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "posting": {
+      "$ref": "#/$defs/Posting"
+    },
+    "flags": {
+      "items": {
+        "$ref": "#/$defs/Flag"
+      },
+      "title": "Flags",
+      "type": "array"
+    },
+    "matches": {
+      "items": {
+        "$ref": "#/$defs/Match"
+      },
+      "title": "Matches",
+      "type": "array"
+    },
+    "answers": {
+      "items": {
+        "$ref": "#/$defs/Answer"
+      },
+      "title": "Answers",
+      "type": "array"
+    },
+    "cv": {
+      "$ref": "#/$defs/CV"
+    },
+    "cover_letter": {
+      "title": "Cover Letter",
+      "type": "string"
+    },
+    "missing_info": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Info",
+      "type": "array"
+    },
+    "improve_next": {
+      "items": {
+        "$ref": "#/$defs/ImproveItem"
+      },
+      "maxItems": 3,
+      "title": "Improve Next",
+      "type": "array"
+    },
+    "next_steps": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 5,
+      "title": "Next Steps",
+      "type": "array"
+    },
+    "outreach": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Outreach"
+    }
+  },
+  "required": [
+    "posting",
+    "matches",
+    "answers",
+    "cv",
+    "cover_letter"
+  ],
+  "title": "ApplicationPackage",
+  "type": "object"
+}

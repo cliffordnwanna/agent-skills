@@ -1,0 +1,33 @@
+name: job-application-kit tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/job-application-kit/**"
+      - ".github/workflows/job-application-kit-tests.yml"
+  pull_request:
+    paths:
+      - "skills/job-application-kit/**"
+      - ".github/workflows/job-application-kit-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skills/job-application-kit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: skills/job-application-kit/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: python scripts/validate_output.py package examples/package.example.json
+      - run: python scripts/validate_output.py discovery examples/discovery.example.json
+      - run: python -m pytest tests -q

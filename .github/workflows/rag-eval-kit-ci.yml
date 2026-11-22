@@ -1,16 +1,28 @@
-name: Local compatibility
+name: rag-eval-kit offline checks
 on:
   push:
+    branches: [main]
+    paths:
+      - "skills/rag-eval-kit/**"
+      - ".github/workflows/rag-eval-kit-ci.yml"
   pull_request:
+    paths:
+      - "skills/rag-eval-kit/**"
+      - ".github/workflows/rag-eval-kit-ci.yml"
 permissions:
   contents: read
 jobs:
   offline:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        python: ["3.12", "3.14"]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: skills/rag-eval-kit
     env:
       DEEPEVAL_TELEMETRY_OPT_OUT: '1'
       DEEPEVAL_DISABLE_DOTENV: '1'
@@ -24,9 +36,12 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.13.8'
-          python-version: '3.14'
+          python-version: ${{ matrix.python }}
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest
       - run: uv run ragkit doctor
+      - run: uv run ragkit smoke
+      - run: uv run ragkit corpus inspect benchmarks/fastapi-docs
+      - run: uv build

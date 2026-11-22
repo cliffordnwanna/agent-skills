@@ -476,5 +476,9 @@ def report(
         raise typer.Exit(1) from None
 
 
+from rag_eval_kit.cli_workflow import register  # noqa: E402
+
+register(app)
+
 if __name__ == "__main__":
     app()

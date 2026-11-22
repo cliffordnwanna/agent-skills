@@ -32,9 +32,19 @@ def write_config(path):
 def test_help_exposes_only_implemented_commands():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    for command in ("doctor", "plan", "spike", "evaluate", "compare", "report"):
+    for command in (
+        "doctor",
+        "plan",
+        "spike",
+        "evaluate",
+        "compare",
+        "report",
+        "predict",
+        "smoke",
+        "corpus",
+        "dataset",
+    ):
         assert command in result.output
-    assert "dataset freeze" not in result.output
     spike_help = runner.invoke(app, ["spike", "--help"])
     assert "--budget-usd" in spike_help.output
 

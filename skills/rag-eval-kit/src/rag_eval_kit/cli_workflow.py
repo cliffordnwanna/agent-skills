@@ -1,0 +1,203 @@
+"""corpus, dataset, predict and smoke commands; offline unless the target app is paid."""
+
+import hashlib
+import json
+import tempfile
+from pathlib import Path
+from typing import Annotated, Literal
+
+import typer
+
+from rag_eval_kit.corpus import CorpusError, load_corpus
+from rag_eval_kit.dataset import build_candidates, validate_candidates, write_candidate_files
+from rag_eval_kit.freeze import ReviewError, freeze, load_review
+from rag_eval_kit.predict import read_cases, run_predictions
+
+
+def _emit(value: dict) -> None:
+    typer.echo(json.dumps(value, indent=2, ensure_ascii=False, default=str))
+
+
+def _fail(reason: str, code: int = 2) -> None:
+    _emit({"status": "blocked", "reason": reason})
+    raise typer.Exit(code)
+
+
+def register(app: typer.Typer) -> None:
+    corpus_app = typer.Typer(help="Inspect a provenance-pinned corpus.", no_args_is_help=True)
+    dataset_app = typer.Typer(
+        help="Create, review and freeze the golden dataset.", no_args_is_help=True
+    )
+    app.add_typer(corpus_app, name="corpus")
+    app.add_typer(dataset_app, name="dataset")
+
+    @corpus_app.command("inspect")
+    def corpus_inspect(
+        directory: Annotated[Path, typer.Argument(exists=True, file_okay=False)],
+    ) -> None:
+        """Verify hashes and Builder size limits; print provenance. Makes no API calls."""
+        try:
+            manifest, docs, corpus_hash = load_corpus(directory)
+        except CorpusError as error:
+            _fail(str(error))
+        total = sum(len(d.content) for d in docs)
+        _emit(
+            {
+                "status": "VERIFIED local hashes",
+                "name": manifest.name,
+                "source_repository": manifest.source_repository,
+                "source_revision": manifest.source_revision,
+                "license": manifest.license,
+                "corpus_sha256": corpus_hash,
+                "documents": [
+                    {"source_id": d.source_id, "characters": len(d.content)} for d in docs
+                ],
+                "total_characters": total,
+                "builder_limits_ok": len(docs) <= 20 and total <= 100_000,
+            }
+        )
+
+    @dataset_app.command("generate")
+    def dataset_generate(
+        corpus_dir: Annotated[Path, typer.Option(exists=True, file_okay=False)],
+        output_dir: Annotated[Path, typer.Option(file_okay=False)],
+    ) -> None:
+        """Write the built-in FastAPI candidate set for review. No model call; not approved data."""
+        try:
+            _, docs, _ = load_corpus(corpus_dir)
+            candidates = build_candidates()
+            validate_candidates(candidates, docs)
+            info = write_candidate_files(candidates, output_dir)
+        except (CorpusError, ValueError, OSError) as error:
+            _fail(f"{type(error).__name__}: {error}")
+        _emit({"status": "candidates_written", "review_required": True, **info})
+
+    @dataset_app.command("review")
+    def dataset_review(
+        review_csv: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+        corpus_dir: Annotated[Path, typer.Option(exists=True, file_okay=False)],
+    ) -> None:
+        """Validate a filled review sheet (keep=yes/no on every row). Writes nothing."""
+        try:
+            _, docs, _ = load_corpus(corpus_dir)
+            _, summary = load_review(review_csv, docs)
+        except (CorpusError, ReviewError) as error:
+            _fail(str(error))
+        _emit({"status": "review_valid", **summary})
+
+    @dataset_app.command("freeze")
+    def dataset_freeze(
+        review_csv: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+        corpus_dir: Annotated[Path, typer.Option(exists=True, file_okay=False)],
+        output_dir: Annotated[Path, typer.Option(file_okay=False, help="Must not exist.")],
+        approved_by: Annotated[str, typer.Option(help="Reviewer who approved the sheet.")],
+        seed: Annotated[int, typer.Option()] = 20261121,
+    ) -> None:
+        """Freeze reviewed questions into golden/dev/held-out files with hashes."""
+        if not approved_by.strip():
+            _fail("--approved-by must name the human reviewer")
+        if output_dir.exists():
+            _fail("Output directory already exists; frozen datasets are never overwritten")
+        try:
+            _, docs, corpus_hash = load_corpus(corpus_dir)
+            cases, _ = load_review(review_csv, docs)
+            manifest = freeze(
+                cases,
+                output_dir,
+                corpus_hash=corpus_hash,
+                seed=seed,
+                approved_by=approved_by.strip(),
+                review_sheet_sha256=hashlib.sha256(review_csv.read_bytes()).hexdigest(),
+            )
+        except (CorpusError, ReviewError) as error:
+            _fail(str(error))
+        _emit({"status": "frozen", **manifest})
+
+    @app.command()
+    def predict(
+        dataset: Annotated[
+            Path, typer.Argument(exists=True, dir_okay=False, help="dev/heldout.jsonl")
+        ],
+        adapter: Annotated[Literal["generic", "builder"], typer.Option()],
+        adapter_config: Annotated[Path, typer.Option(exists=True, dir_okay=False)],
+        target_revision: Annotated[str, typer.Option(help="Exact revision of the system tested.")],
+        output: Annotated[Path, typer.Option(dir_okay=False, help="New predictions JSONL.")],
+        corpus_dir: Annotated[Path | None, typer.Option(file_okay=False)] = None,
+        semantic: Annotated[
+            bool, typer.Option(help="Builder only: require live semantic mode.")
+        ] = False,
+        concurrency: Annotated[int, typer.Option(min=1, max=5)] = 1,
+    ) -> None:
+        """Ask the target app every question and write portable predictions; failures are listed."""
+        from rag_eval_kit.adapters.builder import BuilderHTTPAdapter, BuilderHTTPConfig
+        from rag_eval_kit.adapters.files import write_jsonl
+        from rag_eval_kit.adapters.generic_http import GenericHTTPAdapter, GenericHTTPConfig
+
+        try:
+            cases = read_cases(dataset)
+            raw = json.loads(adapter_config.read_text(encoding="utf-8"))
+            if adapter == "builder":
+                if corpus_dir is None:
+                    _fail("--corpus-dir is required for the builder adapter")
+                _, docs, _ = load_corpus(corpus_dir)
+                client = BuilderHTTPAdapter(BuilderHTTPConfig(**raw))
+                fn = lambda c: client.predict(  # noqa: E731
+                    c, docs, target_revision, require_semantic=semantic
+                )
+            else:
+                client = GenericHTTPAdapter(GenericHTTPConfig(**raw))
+                fn = lambda c: client.predict(c, target_revision)  # noqa: E731
+        except (CorpusError, ValueError, OSError) as error:
+            _fail(f"{type(error).__name__}: {error}")
+        try:
+            records, failures = run_predictions(cases, fn, concurrency=concurrency)
+        finally:
+            client.close()
+        if records:
+            write_jsonl(output, records)
+        _emit(
+            {
+                "status": "completed" if not failures else "completed_with_failures",
+                "predictions": len(records),
+                "failed": failures,
+                "output": str(output) if records else None,
+            }
+        )
+        if failures:
+            raise typer.Exit(1)
+
+    @app.command()
+    def smoke() -> None:
+        """End-to-end offline check: local mock RAG server -> adapter -> lexical metrics."""
+        from rag_eval_kit.adapters.generic_http import GenericHTTPAdapter, GenericHTTPConfig
+        from rag_eval_kit.evaluation import evaluate_lexical
+        from rag_eval_kit.mock_server import (
+            DEMO_DOCS,
+            demo_cases,
+            make_server,
+            serve_in_thread,
+        )
+
+        server = make_server()
+        serve_in_thread(server)
+        try:
+            config = GenericHTTPConfig(base_url=f"http://127.0.0.1:{server.server_address[1]}")
+            with GenericHTTPAdapter(config) as adapter:
+                records, failures = run_predictions(
+                    demo_cases(), lambda c: adapter.predict(c, "smoke-demo")
+                )
+        finally:
+            server.shutdown()
+            server.server_close()
+        if failures:
+            _emit({"status": "smoke_failed", "failed": failures})
+            raise typer.Exit(1)
+        fingerprint = hashlib.sha256(json.dumps(DEMO_DOCS, sort_keys=True).encode()).hexdigest()
+        with tempfile.TemporaryDirectory():
+            run = evaluate_lexical(
+                records,
+                target_revision="smoke-demo",
+                dataset_hash=fingerprint,
+                corpus_hash=fingerprint,
+            )
+        _emit({"status": "smoke_passed", "paid_calls": 0, "result": run})

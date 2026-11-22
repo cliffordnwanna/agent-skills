@@ -3,7 +3,7 @@
 ## Inputs
 
 - The chosen angle and the company brief.
-- The user's voice. The first time, ask for a short sample of something they wrote themselves (an email, a post, a paragraph). Save a note about their voice to `private/preferences.md`. If there is no sample, write plainly and directly.
+- The user's voice. If `private/preferences.md` has voice notes, use them. Otherwise write plainly and directly now (never hold the letter back), and offer once, after delivering the first letter, to take a short sample of something they wrote themselves (an email, a post, a paragraph) and save a voice note to `private/preferences.md`.
 
 ## Structure (under 250 words)
 
@@ -11,9 +11,9 @@
 2. **Proof**: two real pieces of evidence from the portfolio that answer the must-haves, with the actual result if the user has one. Link the portfolio or one project.
 3. **Close**: one concrete next step, such as a call, and any practical note the posting asked for (availability, location, sponsorship need if it is relevant and the user is comfortable stating it).
 
-## Three versions
+## Versions
 
-Write three versions with different angles (for example technical depth, product impact, the user's distinctive background). Label each and keep them genuinely different, not paraphrases. The user picks one and edits it.
+In fast mode write **one** letter, using the strongest angle. Only in careful mode write three genuinely different versions (for example technical depth, impact, the user's distinctive background), label each, and let the user pick one.
 
 ## Avoid
 
@@ -22,6 +22,6 @@ Write three versions with different angles (for example technical depth, product
 - Claims the portfolio cannot back up, and anything the user has not approved about immigration status, pay, or personal circumstances.
 - Restating the CV line by line.
 
-## After the user chooses
+## Delivering the letter
 
-Save the letter in Reactive Resume (see `reactive-resume-mcp.md`) and give the paste-ready text as well, in case the application form wants plain text.
+Deliver it as a file (see `documents-without-rr.md`), or, if the user chose Reactive Resume and it is connected, save it there too (`reactive-resume-mcp.md`). In careful mode, wait for the user to choose a version first. Always give the paste-ready text in the reply as well, in case the application form wants plain text.

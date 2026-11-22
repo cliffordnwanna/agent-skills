@@ -1,6 +1,6 @@
 # Interview pack
 
-Build it after the user has chosen an angle. Everything comes from the portfolio and the user (truth rule).
+Build it on request, using the angle already chosen for the application (in fast mode the skill picks the strongest angle itself; in careful mode, the one the user approved). Everything comes from the portfolio and the user (truth rule).
 
 ## About fifteen likely questions
 

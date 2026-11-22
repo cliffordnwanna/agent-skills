@@ -1,41 +1,35 @@
-# Example: one job (fast mode)
+# Example: one job (apply-fast output)
 
-**Illustrative only. The company, person and details below are fictional.** Real output uses your own portfolio and preferences. Nothing in this file is real data.
+**Illustrative only. The company, person and details are fictional.** Real output uses the user's own background and preferences.
 
-## You paste
+## The user pastes
 
-> Senior ML Engineer, Northwind Labs (fictional). Fully remote, EU and Africa time zones. Contract, USD 25 to 35 per hour. Must have: Python, LLM applications, RAG, cloud deployment. Nice to have: LangGraph. Apply by 30 Jan.
+> Support Specialist, Northwind Labs (fictional). Remote, contract, USD 18 to 24 per hour. Must have: customer support experience, clear written English, CRM tools. Application questions: 1) Why do you want to work here? 2) Expected hourly rate? 3) Hours you can work? 4) Do you need visa sponsorship?
 
-## You get (one review screen)
+## The user gets, in this order
 
-**Decision summary**
-- Recommendation: Apply.
-- Flags: Timezone overlap about 4 hours with your base country: OK. Pay is stated and sits at your target: Strong. Legitimacy: Low risk (company site matches the posting, named recruiter on the careers page; sources listed).
-- You must fill in: your notice period (not in your preferences) and one real result for your RAG project (the portfolio has no outcome).
+**1. Answers (paste-ready)**
+1. *Why do you want to work here?* [3 sentences tied to the posting and the user's real experience]
+2. *Expected hourly rate?* USD 24 per hour. [at or above the user's target, in the form's currency; the floor is never shown]
+3. *Hours you can work?* [fill in: your weekly availability]
+4. *Visa sponsorship?* I am applying for remote contract work. Please confirm whether contractors from my country can be engaged. [fill in: your own work-authorisation situation; never claim none is needed until the employer confirms]
 
-**Fit table**
+**2. Files (each separate)**
+- `Northwind Labs - Support Specialist - 2026-11-22 - CV.pdf` and `.docx`
+- `Northwind Labs - Support Specialist - 2026-11-22 - Cover letter.pdf` and `.docx`
+- `applications-tracker.csv` (updated)
 
-| Must-have | Result | Evidence from your portfolio |
-|---|---|---|
-| Python | Met | Listed in skills, used in 3 projects |
-| LLM applications | Met | Project A (agent with tool calling) |
-| RAG | Met | Project B (retrieval pipeline) |
-| Cloud deployment | Partial | Deployed on one cloud, no second provider shown |
-| LangGraph (nice to have) | Missing | Not in portfolio. Framing: you have built agents with a different framework |
+**3. Missing information**
+- Weekly availability
+- One real result from a past support role (for example tickets handled, satisfaction score) if you have one
 
-**Angle chosen:** lead with production LLM and RAG work, because it covers three of four must-haves. Reason given in one line.
+**4. Warnings**
+- Pay range is within your target. No flags.
 
-**Files**
-- `Northwind Labs - Senior ML Engineer - 2026-11-22 - CV.pdf` (and a plain-text copy)
-- `Northwind Labs - Senior ML Engineer - 2026-11-22 - Cover letter.pdf` (and paste-ready text)
-- Application answers (text)
-- Outreach: a connection note under 300 characters, plus a short email to the named recruiter
+**5. Improve next**
+- Skill wanted that you have not shown: a named CRM tool. Add it to your CV if you have used it, or learn the free tier of one.
+- Add one measurable result to your strongest support role.
+- Logged to `skills-to-learn.csv`.
 
-**Action plan**
-1. Apply at the link before 30 Jan.
-2. Tracker row added (`saved`, follow-up in 7 days).
-3. One portfolio tweak: put the RAG project first.
-4. One gap task (under an hour): build a small LangGraph example and link it.
-5. Question for the recruiter: is the contract renewable?
-
-Interview pack: not generated in fast mode. Say "interview pack" to get it.
+**6. Next steps**
+Apply at the link before the deadline. Tracker row added (follow-up in 7 days).

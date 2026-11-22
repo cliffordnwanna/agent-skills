@@ -17,4 +17,4 @@
 
 ## When something looks wrong
 
-If a recruiter asks for money, early ID or bank details, or pushes the user off-platform to a chat app, stop and tell the user plainly, with the specific reason.
+If a recruiter asks for money, early ID or bank details, or pushes the user off-platform to a chat app, tell the user plainly, with the specific reason, and put that warning first. Do not draft outreach or ask for personal details for that posting. This is a flag, not a refusal: the user can still ask for documents.
