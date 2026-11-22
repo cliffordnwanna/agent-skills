@@ -246,12 +246,12 @@ Last checked: 2026-11-22.
 **VERIFIED** (commands run and passing, on Windows):
 - 206 automated tests pass, on Python 3.12 and on 3.14, with no network and no paid calls. They include the offline workflow against a local fake app: import, approval, freeze, `ragkit run` with resume and refusals, request templates, `ragkit init`, the speed, error and cost measurements, and the readable and `--json` output.
 - `ragkit doctor`, `ragkit smoke` and `ragkit corpus inspect benchmarks/fastapi-docs` run. The package builds, and the wheel includes the agent skill and no test files.
+- **Install from GitHub (2026-11-22):** the exact `uv tool install` command in the quick start, run against the default branch in a fresh environment, installed the tool. `ragkit smoke`, `ragkit doctor`, `ragkit init` and the skill copy all worked, and the run file recorded the merged commit `6180df5`.
+- **GitHub's automatic checks (2026-11-22):** on the merge commit `6180df5`, all five checks passed: Ubuntu and Windows, each on Python 3.12 and 3.14, plus the job-application-kit tests.
 - A real judge call worked once, on 2026-11-21: `gpt-4.1-mini`, 3 fixture examples, about $0.012. This showed compatibility only, not quality.
 - **A real app, in a throwaway test (2026-11-22):** the tool ran against the real Conversational Agent Builder at tag `baseline-v1` (a clean checkout, in keyword-only mode with no key). Four unreviewed questions were answered with none failing. The answer, retrieved passages and source IDs were captured, and `evaluate` and `report` ran. This proves the plumbing. It is not a result and is not used in the case study. Steps and findings are in [docs/RUNBOOK_BUILDER.md](docs/RUNBOOK_BUILDER.md). It showed two gaps: per-question latency was not recorded, and refusing to answer cannot be assessed in keyword mode. Latency recording has since been added (see the next list: UNVERIFIED against the real Builder).
 
 **UNVERIFIED:**
-- Installing from GitHub with the `uv tool install` command above. It was tested only from a local copy of the repository, because the newest commits are not on the default branch yet.
-- GitHub's automatic checks (Ubuntu and Windows) for the newest commits.
 - The Builder in **meaning-based (semantic) mode**. That needs an OpenAI key set for the Builder, which was not available for the test.
 - `ragkit run` and `ragkit adapter test` against the Builder or any real app. They were tried only against the local fake app. The real-app test above used `predict`, `evaluate` and `report` by hand.
 - `dataset import` and `corpus init` on a real project. They are covered by automated tests only.
@@ -261,7 +261,7 @@ Last checked: 2026-11-22.
 
 **Not built:** negative controls, judge agreement, question generation from your own documents, wildcard response paths.
 
-**The first case study** will use the [Conversational Agent Builder](https://github.com/cliffordnwanna/CONVERSATIONAL_AGENT_BUILDER) at tag `baseline-v2`. **UNVERIFIED: that tag does not exist yet.** The earlier real-app test used the existing tag `baseline-v1`. The case study has not been run, and no results exist. Steps: [docs/RUNBOOK_BUILDER.md](docs/RUNBOOK_BUILDER.md).
+**The first case study** will use the [Conversational Agent Builder](https://github.com/cliffordnwanna/CONVERSATIONAL_AGENT_BUILDER) at tag `baseline-v2` (commit `2af15d8`). **The tag exists; no evaluation run yet, and no results exist.** It adds per-turn timing and split prompt and completion token counts to the chat response. This tool's Builder adapter does not read those new fields yet, so the Builder's token cost still shows as unavailable until it does, and that has not been tried against a live response. The earlier real-app test used the existing tag `baseline-v1`. Steps: [docs/RUNBOOK_BUILDER.md](docs/RUNBOOK_BUILDER.md).
 
 ## Limits
 
