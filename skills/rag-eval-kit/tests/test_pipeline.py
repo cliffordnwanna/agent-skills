@@ -244,3 +244,19 @@ def test_target_failures_are_reported_and_never_resumed_from(project):
         failing.server_close()
     assert result.exit_code == 2 and out["failed_stage"] == "predict"
     assert not (project.out / "dev" / "predictions.jsonl").exists()  # no half-finished file
+
+
+def test_output_inside_the_target_repo_must_be_git_ignored(project):
+    project.freeze_dataset()
+    project.write_config(output="app/ragkit-out")  # inside the target repository
+    blocked, out = project.run()
+    assert blocked.exit_code == 2 and ".gitignore" in out["reason"]
+    assert not (project.target / "ragkit-out").exists()  # nothing was written before refusing
+
+    (project.target / ".gitignore").write_text("ragkit-out/\n", encoding="utf-8")
+    _git(project.target, "add", ".gitignore")
+    _git(project.target, "commit", "-m", "ignore ragkit output")
+    done, summary = project.run()
+    assert done.exit_code == 0, done.output
+    assert summary["status"] == "completed"
+    assert (project.target / "ragkit-out" / "dev" / "run-lexical.json").exists()

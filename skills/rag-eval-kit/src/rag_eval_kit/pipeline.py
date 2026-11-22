@@ -84,6 +84,23 @@ def _count_lines(path: Path) -> int:
         return sum(1 for line in handle if line.strip())
 
 
+def _output_would_dirty_repo(config: RunConfig) -> bool:
+    """True if ragkit's output folder is inside the target repo and git would not ignore it."""
+    repo = config.target.repo
+    assert repo is not None
+    try:
+        config.output.resolve().relative_to(repo.resolve())
+    except ValueError:
+        return False  # outside the repository: cannot make it dirty
+    probe = config.output.resolve() / "dev" / "predictions.jsonl"
+    result = subprocess.run(
+        ["git", "--no-optional-locks", "-C", str(repo), "check-ignore", "-q", str(probe)],
+        capture_output=True,
+        check=False,
+    )
+    return result.returncode != 0
+
+
 def _ragkit(*args: str) -> tuple[int, str, str]:
     """Run the same CLI a person would use. Returns (exit code, stdout, stderr)."""
     result = subprocess.run(
@@ -178,6 +195,14 @@ def run_pipeline(
             "blocked",
             reason="Set target.repo (a clean local git checkout of the system under test) in "
             "ragkit.yaml, or set both revision and target.allow_unverified_target: true.",
+        )
+    if config.target.repo is not None and _output_would_dirty_repo(config):
+        return result(
+            "blocked",
+            reason=f"The output folder ({config.output}) is inside the target repository and "
+            "git does not ignore it, so the files ragkit writes would make the repository "
+            "'dirty' and the run would be refused part-way. Add the folder to the "
+            "repository's .gitignore and commit that, or set 'output' to a folder outside it.",
         )
     stage("revision", "done", target_revision=revision)
 

@@ -16,7 +16,7 @@ target:
   repo: ../my-rag-app     # local git checkout of the system under test; no uncommitted changes
 corpus: docs              # your documents plus provenance.json (ragkit corpus init)
 dataset: frozen           # the frozen golden set; a person makes it (import, review, freeze)
-output: ragkit-out        # predictions, run files and reports are written here
+output: ragkit-out        # results go here; if it is inside repo, add it to .gitignore
 # revision: <sha>         # optional: a specific commit of target.repo (default: its HEAD)
 """
 
