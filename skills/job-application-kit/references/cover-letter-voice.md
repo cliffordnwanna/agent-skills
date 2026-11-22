@@ -11,9 +11,9 @@
 2. **Proof**: two real pieces of evidence from the portfolio that answer the must-haves, with the actual result if the user has one. Link the portfolio or one project.
 3. **Close**: one concrete next step, such as a call, and any practical note the posting asked for (availability, location, sponsorship need if it is relevant and the user is comfortable stating it).
 
-## Three versions
+## Versions
 
-Write three versions with different angles (for example technical depth, product impact, the user's distinctive background). Label each and keep them genuinely different, not paraphrases. The user picks one and edits it.
+In fast mode write **one** letter, using the strongest angle. Only in careful mode write three genuinely different versions (for example technical depth, impact, the user's distinctive background), label each, and let the user pick one.
 
 ## Avoid
 

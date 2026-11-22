@@ -32,3 +32,12 @@ This is information, not tax or legal advice. Suggest the user confirm tax and c
 ## Never reveal
 
 Do not state the user's floor or target in anything meant for the employer. When asked for a salary expectation, use the answer-bank rule.
+
+## Currency and form consistency (every application)
+
+Postings and forms often disagree. Check, and flag rather than assume:
+- **Three currencies can differ**: the advertised pay, the form's requested salary field, and the currency of the country in the job's location. Detect any mismatch.
+- **Advertised pay is not the user's requested pay.** Keep them separate. State the advertised figure as advertised, and give the requested figure as its own line.
+- **Convert only with a current, sourced exchange rate.** Look it up, cite the source and the date, and say the conversion is approximate. Never use a rate from memory. Never silently assume the form's currency is correct: if the form asks in a currency that does not match the posting, say so and give the answer in the form's currency plus the posting's currency.
+- For a salary-expectation field, use the user's target (never the floor), expressed in the unit and currency the form asks for.
+- **Unknown personal facts** (GPA, transcript, enrolment status, notice period, start date, references) are never invented: use `[fill in: ...]` and list them under Missing information.

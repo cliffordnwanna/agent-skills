@@ -1,6 +1,6 @@
 ---
 name: job-application-kit
-description: Turn pasted job postings into ready-to-send applications. Use whenever the user pastes one or more job links or postings, or asks to check, tailor a CV for, or apply to a job. Reads the user's portfolio, flags eligibility, scam and pay issues without blocking, researches the company, then produces a tailored CV, cover letter, application answers, outreach draft and next steps as downloadable files. Works with or without Reactive Resume. Never submits or sends anything itself.
+description: Find and prepare applications for jobs. Use whenever the user pastes one or more job links or postings, asks to find the best-matched jobs, or asks to check, tailor a CV for, prepare for, or apply to a job. Reads the user's portfolio, flags eligibility, scam and pay issues without blocking, researches the company, then produces a tailored CV, cover letter, application answers, outreach draft and next steps as downloadable files. Works with or without Reactive Resume. Never submits or sends anything itself.
 ---
 
 # Job Application Kit
@@ -15,37 +15,66 @@ Take a pasted posting (or several), read the user's real background, and hand ba
 4. **Ask before any delete.** Deleting an application in Reactive Resume is permanent.
 5. **Private preferences stay private.** Never put the pay floor, target or private notes into anything an employer sees.
 6. **Cite sources** for claims about the company or market. Say "unknown" when you don't know.
-7. **Flag, don't block.** Screening problems (eligibility, pay, legitimacy) are shown in the report with evidence and a recommendation. They never stop the work. The user has read the job and decides. Only stop to ask when the user has to supply a missing fact. Two things change when a risk is serious: with a **high** legitimacy rating, show the warning first and do not draft outreach or ask for personal details; with a hard no from the user's own `auto_no` list, say which rule matched and keep going unless told otherwise.
-8. **Tailor, don't gatekeep.** If the user can do the job, the skill's task is to find the honest way to present their real experience for it: adjacent experience, transferable skills, learning in progress. Never claim what isn't true; do say what is true in the posting's language.
+7. **Flag, don't block.** Screening problems (eligibility, pay, legitimacy) are shown in the report with evidence and a recommendation. They never stop the work. The user has read the job and decides. Only stop to ask when the user has to supply a missing fact. Two things change when a risk is serious: with a **high** legitimacy rating, show the warning first and do not draft outreach or ask for personal details. This high-risk rule **overrides every other outreach instruction**, including batch mode, gig mode and the action plan; with a hard no from the user's own `auto_no` list, say which rule matched and keep going unless told otherwise.
+8. **Improve, don't copy.** The goal is a better application than the user's existing CV, not a copy of it. Rewrite for impact: lead with the strongest relevant evidence, use stronger verbs, state the outcome of each piece of work, tighten, and match the posting's language. Use adjacent and transferable experience. Improvements to wording and structure are encouraged. New facts, figures and claims are not: if a stronger bullet needs a number or detail the user hasn't given, put it in the Improve next list and ask for it.
+9. **Never limit matching to exact keywords.** Match the posting's requirements to the user's evidence using `references/role-and-keyword-expansion.md`.
+10. **Tailor, don't gatekeep.** If the user can do the job, the skill's task is to find the honest way to present their real experience for it: adjacent experience, transferable skills, learning in progress. Never claim what isn't true; do say what is true in the posting's language.
 
-## Setup (every run, fast)
+## Setup
 
-1. Load `private/preferences.md`. If missing, read `references/preferences-intake.md`, run the six-question interview once, and give the user the file to save. Also look for `private/achievements.md` (see `templates/achievements.example.md`). It is optional: a missing file is never a reason to stop or to refuse. Work from the portfolio evidence, and ask for a missing outcome or figure only where it would clearly improve the application (a bullet that would otherwise be vague). Offer once, at the end, to save new facts the user gave you into `achievements.md`.
-2. Read the portfolio with `portfolio_get` (`references/liveportfolio-mcp.md`). If it isn't connected, ask for a pasted CV.
-3. **Document output.** Check whether the Reactive Resume MCP is connected (`list_resumes`).
-   - Connected: use it for PDFs and the tracker (`references/reactive-resume-mcp.md`).
-   - Not connected, or the user doesn't want it: build the documents yourself (`references/documents-without-rr.md`). This is a full path, not a degraded one, and never blocks the flow. Do not ask the user to set up Reactive Resume.
+**First run for a new user** (this skill is for anyone: never assume the user's field, country, language or goals) (no saved preferences, or the user says "set me up"): follow `references/onboarding.md`. It is a short guided setup that never blocks: the user can answer "skip" to any part and move on. It covers (1) where their background comes from, (2) the six preference questions, (3) the contact details a CV needs, (4) whether to use Reactive Resume or plain files, with step-by-step help if they want it.
+
+**Every run:**
+1. Load the saved preferences (`private/preferences.md`, or the text the user pasted or that is saved in this chat or project). If none exist, run onboarding. Also look for `private/achievements.md`. It is optional: a missing file is never a reason to stop or to refuse. Work from the portfolio evidence, and ask for a missing outcome or figure only where it would clearly improve the application. Offer once, at the end, to save new facts the user gave you.
+2. Read the portfolio with `portfolio_get` (`references/liveportfolio-mcp.md`), or use the CV the user pasted. If the CV needs contact details the portfolio doesn't expose (for example an email), ask once and save the answer to preferences.
+3. **Document output** follows the saved `documents` setting:
+   - `reactive_resume` and the MCP responds (`list_resumes`): use `references/reactive-resume-mcp.md`.
+   - `files`, or Reactive Resume isn't connected: use `references/documents-without-rr.md`. This is a full path, not a degraded one.
+   - Not set yet: use files, and mention once, in one line, that Reactive Resume is available if they want it (`references/onboarding.md`, section 4). Never block or nag.
 4. Load only the references each step names. Read `references/privacy-and-security.md` before handling personal data, outreach or any saved file. The `examples/` folder shows what single-job and batch output look like (fictional data).
 
 ## Choose the mode
 
 - **One job pasted** → **Fast mode**.
 - **Several jobs pasted** → **Batch mode**.
+- **"Find me jobs", "top 5"** → **Discovery mode** (`references/discovery-mode.md`): find the best-matched live jobs using the portfolio and web search, then prepare them.
+- **"Prep me", "win pack"** → **Win Pack** (`references/deep-prep.md`): deep company, role and interview preparation for a job the user really wants. Offer it after each package.
 - User says "careful" or wants to review each step → **Careful mode** (adds the checkpoints marked below).
+
+## Gig mode
+
+If the posting is a short contract, task or hourly gig, or the user says "gig", use `references/gig-mode.md`: pre-filled answers, a one-page CV, a short pitch and a rate suggestion. Same flag-not-block rules.
 
 ## Fast mode (default, one job)
 
 Do all of this in one pass, then present one review screen:
 
-1. **Read** the posting. If a link can't be fetched, ask for the text. Extract company, role, must-haves, nice-to-haves, location and timezone rules, employment type, pay, visa language, deadline, how to apply.
-2. **Screen** (`eligibility-rules.md`, `legitimacy-checklist.md`, `pay-check.md`). Output flags, not verdicts: each check is OK, Unknown or Flag, with the deciding line from the posting.
-3. **Company brief**: three to five sourced bullets, and a named recruiter or hiring manager only if verified from a public source.
-4. **Fit table**: each must-have as met, partial or missing, with portfolio evidence, plus honest gaps and how to frame them. Pick the best angle yourself and give a one-line reason. *Careful mode: show three angles and wait for the user's choice.*
-5. **Documents**: tailored CV (`cv-rules.md`), cover letter (`cover-letter-voice.md`), application answers (`answer-bank.md`). Build the files. *Careful mode: show the CV text and wait for approval before building, and give three letter versions to choose from.*
-6. **Interview pack** (`interview-pack.md`) when asked, or in careful mode. Skip it in fast mode unless requested, because it is not needed to apply.
-7. **Action plan** (below).
+1. **Read** the posting. If a link can't be fetched, ask for the text. Extract company, role, requirements, location and timezone rules, employment type, pay and currency, visa language, deadline, every question the application asks, and how to apply.
+2. **Screen** (`eligibility-rules.md`, `legitimacy-checklist.md`, `pay-check.md`). Flags only (OK, Unknown, Flag), kept internal unless something needs the user's attention. Use web research (the client's built-in search and page reading) to verify the company and any current figures.
+3. **Match** requirements to the user's evidence (`role-and-keyword-expansion.md`). Pick the strongest angle yourself. Do not wait for the user.
+4. **Build everything in one pass, with no approval step:** answers to the posting's questions (`answer-bank.md`), one tailored CV (`cv-rules.md`) and one cover letter (`cover-letter-voice.md`). Interview pack, company brief and fit table only on request.
+5. **Validate, then deliver.** Assemble the data as typed JSON and validate it (`references/structured-output.md`, `schemas/models.py`, `scripts/validate_output.py`) before generating files. Deliver in the output format below.
 
-Present once: a short decision summary at the top (recommendation, flags, what the user must fill in), then the files. The user reviews, downloads and applies.
+**Careful mode** (only when the user says "careful"): add checkpoints. Show three angles and wait; show the CV text and wait for approval before building; give three cover letter versions to choose from.
+
+## Output format (apply-fast, the default)
+
+The user has already chosen this job. The analysis exists only to keep them safe and help them improve, not to be read at length. Do **not** explain the screening, restate the posting, or narrate the process. Deliver in this exact order:
+
+1. **Serious warning first, only if the legitimacy risk is high** (scam signs, fees, requests for ID or banking). Two lines. All other warnings go at position 6.
+2. **Answers to the posting's own questions**, pre-filled and ready to paste, labelled with the question text. Include every question the posting or form lists. Use the answer-bank rules. If an answer needs a fact the user hasn't given, give the best honest draft with `[fill in: ...]`. Never skip a question and never invent an answer.
+3. **CV**, then **cover letter**, each as its own downloadable file (see "Files" below). Give the cover letter text in the reply too.
+4. **Any other document the application needs**, as separate files.
+5. **Missing information**: a short list of what the user must supply (for example transcript, GPA, enrolment, notice period, a result for a bullet).
+6. **Other warnings** (country restriction, pay below floor, currency mismatch, unusual requests), one line each, only if present.
+7. **Improve next (max 3 bullets):** the most useful improvements this application revealed: skills the posting wanted that the user lacks (in the posting's wording), and one fix to their CV, portfolio or evidence. Append skills to the user's private `private/skills-to-learn.csv` (columns: date, company, role, skill, how_often_seen). If it does not exist, create it from `templates/skills-to-learn.csv`. Never write to the templates themselves. When a skill has appeared in 3 or more postings, tell the user it is a priority and suggest one small project to learn it.
+8. **Next steps** (apply link, deadline, tracker row, the one pay or sponsorship question if unstated), five lines at most.
+
+## Files
+
+Always give each generated document as its **own downloadable file**: CV (PDF and DOCX), cover letter (PDF and DOCX), application answers, tracker CSV. **Never bundle application documents into a ZIP archive.** The user must be able to open and download each file separately.
+
+Heavy requirements are never a reason to hold back. Apply honestly with the experience they have, and let the gaps feed the Improve next list. Give the longer analysis (fit table, company brief, interview pack) only if the user asks to "explain", "analyse" or "go careful".
 
 ## Batch mode (several jobs)
 
@@ -58,13 +87,13 @@ Present once: a short decision summary at the top (recommendation, flags, what t
    - **Flags**: eligibility, pay, legitimacy and timezone issues, in plain words.
    - **Suggested**: Apply, Apply with a question to the recruiter, or Your call. A flagged job is still listed and still available.
 2. Ask which jobs to proceed with (by number, "all", or "all Strong and Possible"). If the user already said to do them all, don't ask.
-3. **Tier 2, for the selected jobs.** Run Fast mode steps 3 to 7 for each, in parallel where possible, and deliver one package per job plus a combined tracker summary.
+3. **Tier 2, for the selected jobs.** Produce each package in the apply-fast output format above, one after another, in parallel where possible, and deliver one package per job plus a combined tracker summary.
 
 ## Action plan (end of every job)
 
 1. Apply link and deadline.
-2. Tracker entry with a follow-up date (default 7 days) and the next action. With Reactive Resume connected, create it there; otherwise give the entry as a row in `applications-tracker.csv` (or tell the user the row to add to their own sheet).
-3. Outreach: a connection note under 300 characters and a short email. Use only a contact verified from a public source. Never guess or scrape an email address. If none, give the LinkedIn note only.
+2. Tracker entry with a follow-up date (default 7 days) and the next action. With Reactive Resume connected, create it there; otherwise append a row to the user's private `private/applications-tracker.csv`, created from `templates/applications-tracker.csv` if missing (never write to the templates), or tell the user the row to add to their own sheet.
+3. Outreach (never for a high-risk posting): a connection note under 300 characters and a short email. Use only a contact verified from a public source. Never guess or scrape an email address. If none, give the LinkedIn note only.
 4. One small portfolio improvement for this role (propose only; edit only on request, following the portfolio's approval rules).
 5. One gap-closing task under an hour.
 6. The question to ask if pay or sponsorship was unstated.
@@ -75,10 +104,10 @@ Not part of this version. Planned for later as drafts first, then individually a
 
 ## Deliverables per job
 
-- **CV** (PDF, plus DOCX if the user asks) and a plain-text copy.
+- **CV** (PDF and DOCX) and a plain-text copy.
 - **Cover letter** (PDF or DOCX, plus paste-ready text).
 - **Application answers** (text).
-- **Decision summary** with flags, fit table, gaps and company brief (short document).
+- **Decision summary** with fit table and company brief, only on request.
 - **Outreach drafts** and **action plan**.
 - **Interview pack** on request.
 

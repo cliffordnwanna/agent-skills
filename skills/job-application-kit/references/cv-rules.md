@@ -33,4 +33,4 @@ Show only what `private/preferences.md` allows. Default: name, email, city and c
 
 ## Before the PDF
 
-Show the full CV text, mark any `[needs your real figure]` gaps, and wait for approval.
+In fast mode, build the file straight away and list any `[needs your real figure]` gaps under Missing information. Only in careful mode show the full CV text and wait for approval first.

@@ -12,7 +12,7 @@ Answer the questions in the posting first. Then cover the standard set below, in
 | Biggest weakness | A real, honest, minor weakness the user confirms, plus what they are doing about it. Ask the user; do not invent one. |
 | Salary expectation | Never state the walk-away floor. Give a range in the listing's currency, based on the user's target and the sourced market range. If the user prefers not to say, offer a polite deferral ("happy to discuss once I understand scope"). |
 | Availability and notice period | From the user's preferences. |
-| Work authorisation and location | State plainly where the user is based and whether they can work for this company remotely. If the role requires sponsorship for relocation, state the need honestly when asked. Do not claim authorisations the user does not hold. |
+| Work authorisation and location | **Never state that no visa or work authorisation is needed** unless the user has confirmed their own situation and the employer has confirmed the arrangement; otherwise ask the employer and add a `[fill in: ...]`. State plainly where the user is based and whether they can work for this company remotely. If the role requires sponsorship for relocation, state the need honestly when asked. Do not claim authorisations the user does not hold. |
 | Timezone overlap | From the user's preferences. |
 | How did you hear about us? | Ask the user. |
 | Links | Portfolio, LinkedIn, GitHub, as the user allows. |

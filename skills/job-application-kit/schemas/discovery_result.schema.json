@@ -1,0 +1,147 @@
+{
+  "$defs": {
+    "Flag": {
+      "properties": {
+        "check": {
+          "enum": [
+            "eligibility",
+            "legitimacy",
+            "pay",
+            "currency",
+            "timezone",
+            "other"
+          ],
+          "title": "Check",
+          "type": "string"
+        },
+        "level": {
+          "enum": [
+            "ok",
+            "unknown",
+            "flag",
+            "high_risk"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "The deciding line from the posting, or the source",
+          "minLength": 3,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        }
+      },
+      "required": [
+        "check",
+        "level",
+        "evidence"
+      ],
+      "title": "Flag",
+      "type": "object"
+    },
+    "JobLead": {
+      "properties": {
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "posted_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Posted Date"
+        },
+        "date_verified": {
+          "default": false,
+          "description": "True only if the date was read from the posting page itself",
+          "title": "Date Verified",
+          "type": "boolean"
+        },
+        "why_match": {
+          "description": "Requirement-to-evidence reasoning, not keyword overlap",
+          "minLength": 10,
+          "title": "Why Match",
+          "type": "string"
+        },
+        "flags": {
+          "items": {
+            "$ref": "#/$defs/Flag"
+          },
+          "title": "Flags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "company",
+        "role",
+        "url",
+        "why_match"
+      ],
+      "title": "JobLead",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "searched_on": {
+      "format": "date",
+      "title": "Searched On",
+      "type": "string"
+    },
+    "terms_used": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Terms Used",
+      "type": "array"
+    },
+    "leads": {
+      "items": {
+        "$ref": "#/$defs/JobLead"
+      },
+      "maxItems": 5,
+      "title": "Leads",
+      "type": "array"
+    }
+  },
+  "required": [
+    "searched_on",
+    "terms_used",
+    "leads"
+  ],
+  "title": "DiscoveryResult",
+  "type": "object"
+}

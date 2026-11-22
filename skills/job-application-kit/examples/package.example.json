@@ -1,0 +1,56 @@
+{
+  "posting": {
+    "company": "Northwind Labs (fictional)",
+    "role": "Support Specialist",
+    "url": "https://example.com/jobs/1",
+    "posted_date": "2026-11-21",
+    "employment_type": "contractor",
+    "location_rule": "Remote, applicants from any country",
+    "visa_text": null,
+    "pay": {"stated": true, "minimum": 18, "maximum": 24, "currency": "USD", "unit": "hour"},
+    "requirements": [
+      {"text": "Customer support experience", "kind": "must"},
+      {"text": "Clear written English", "kind": "must"},
+      {"text": "CRM tools", "kind": "nice"}
+    ],
+    "questions": ["Why do you want to work here?", "Expected hourly rate?", "Do you need visa sponsorship?"],
+    "deadline": "2026-12-15"
+  },
+  "flags": [
+    {"check": "pay", "level": "ok", "evidence": "USD 18 to 24 per hour sits inside the target range"},
+    {"check": "eligibility", "level": "unknown", "evidence": "Posting says remote from any country; confirm contractor work authorisation with the employer"}
+  ],
+  "matches": [
+    {"requirement": "Customer support experience", "status": "strong", "evidence": ["Role: Support Agent, Example Co"], "framing": "Handled customer queries across chat and email"},
+    {"requirement": "CRM tools", "status": "gap", "evidence": [], "framing": null}
+  ],
+  "answers": [
+    {"question": "Why do you want to work here?", "answer": "Your focus on fast, friendly support matches how I have worked in my last role.", "fill_in": []},
+    {"question": "Expected hourly rate?", "answer": "USD 24 per hour.", "fill_in": []},
+    {"question": "Do you need visa sponsorship?", "answer": "I am applying for remote contract work. Please confirm whether contractors from my country can be engaged.", "fill_in": ["Confirm your own work-authorisation situation"]}
+  ],
+  "cv": {
+    "name": "Example Person",
+    "email": "person@example.com",
+    "location": "City, Country",
+    "links": ["https://example.com/portfolio"],
+    "summary": "Customer support specialist with experience handling chat and email queries, focused on clear written communication.",
+    "experience": [
+      {"title": "Support Agent", "organisation": "Example Co", "period": "2023 to 2026",
+       "bullets": [
+         {"text": "Resolved customer queries across chat and email.", "evidence": "Portfolio: Support Agent role", "figure_confirmed": false},
+         {"text": "Answered 40 chats per day on average.", "evidence": "User statement in chat", "figure_confirmed": true}
+       ]}
+    ],
+    "skills": ["Customer support", "Written communication"],
+    "education": ["Example degree, Example University"]
+  },
+  "cover_letter": "Hello Northwind Labs team,\n\nYour posting stresses fast, friendly support, which is how I have worked for three years.\n\nI would welcome a conversation.\n\nExample Person",
+  "missing_info": ["Weekly availability", "One real result from your support role"],
+  "improve_next": [
+    {"kind": "skill_to_learn", "text": "CRM tools (free tier of any popular CRM)"},
+    {"kind": "evidence_needed", "text": "Add a real satisfaction or volume figure to your strongest support bullet"}
+  ],
+  "next_steps": ["Apply at the link before 15 Dec", "Add tracker row, follow up in 7 days"],
+  "outreach": null
+}

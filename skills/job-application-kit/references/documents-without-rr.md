@@ -23,6 +23,10 @@ Check what is available instead of assuming. Do not ask the user to install anyt
 
 Plain business letter, one page, the user's name and contact line at the top, date, greeting by name if a verified name exists (otherwise "Hello <Company> hiring team"), body, sign-off.
 
+## One file per document
+
+Provide each document as its own downloadable file: CV (PDF and DOCX), cover letter (PDF and DOCX), application answers, tracker CSV. Never bundle documents into a ZIP archive. Give each file separately so it can be opened and downloaded on its own.
+
 ## After building
 
 - Open or re-read the file to check: no placeholder text left (other than marked `[needs your real figure]` gaps shown to the user), no leftover template names or emails, page count right, links correct.
@@ -31,4 +35,4 @@ Plain business letter, one page, the user's name and contact line at the top, da
 
 ## Tracker without Reactive Resume
 
-Keep `applications-tracker.csv` with columns: date, company, role, link, status, follow_up_date, next_action, contact, notes. Append a row per application and give the user the updated file. Status is `saved` until the **user** says they have applied.
+Keep the user's private `private/applications-tracker.csv` (create it from `templates/applications-tracker.csv` if missing; never write to the templates) with columns: date, company, role, link, status, follow_up_date, next_action, contact, notes. Append a row per application and give the user the updated file. Status is `saved` until the **user** says they have applied.

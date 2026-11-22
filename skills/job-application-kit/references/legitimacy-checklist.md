@@ -35,3 +35,15 @@ Goal: give evidence and a risk rating (low, medium or high). You can find red fl
 A short list: each check, what you found, source link, and the rating with confidence. If medium or high, recommend what the user should verify themselves (for example a video call with a named person) before sharing any personal information.
 
 Reputable general guides exist, for example We Work Remotely's scam checklist. Use current guidance and cite what you use.
+
+## Gig, task and data-work postings: extra signs
+
+Quick-work postings attract more scams. Treat any of these as a strong warning:
+- A fee, "registration", "training kit" or "equipment" payment to start.
+- Asks the person to buy gift cards, forward money, or receive and re-send payments.
+- Asks for remote access to the user's computer, or for banking details before any work is agreed.
+- Guaranteed income, "no experience, high pay", or pay far above the going rate.
+- No named company, or a company that cannot be found outside the posting.
+- Pushes the conversation to a private chat app immediately, with no application process.
+- Work that never gets a clear payment method, schedule or contract.
+Say what you saw and why it matters. Do not label a posting "safe". Genuine task and data-work engagements usually have a clear onboarding or assessment step and a stated payment method; check this against the posting and what you can verify.

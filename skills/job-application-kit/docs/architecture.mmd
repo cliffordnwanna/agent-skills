@@ -1,0 +1,13 @@
+flowchart TB
+  U["You: paste a job or batch,<br/>or ask for the top 5 matches"]
+  S["Job Application Skill<br/>Instructions, decisions, workflow,<br/>checks and approvals"]
+  U --> S
+  S <--> W["Web research and job discovery<br/>Postings, employers, pay, exchange rates<br/>(built into your AI client)"]
+  S <--> P["Portfolio / CV source<br/>LivePortfolio MCP, or your pasted CV"]
+  S --> V["Typed JSON + Pydantic validation<br/>truth rule, flags, limits enforced in code"]
+  V --> F["Document files<br/>DOCX, PDF, CSV tracker (private)"]
+  S <-.optional.-> R["Reactive Resume MCP<br/>PDF rendering and online tracker"]
+  S <-.planned, not available yet.-> G["Gmail<br/>Drafts, then approved sending"]
+  F --> O["You receive: pre-filled answers, CV,<br/>cover letter, missing info, warnings,<br/>improve-next. You review and apply."]
+  classDef opt stroke-dasharray: 5 5
+  class R,G opt

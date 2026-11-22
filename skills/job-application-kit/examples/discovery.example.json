@@ -1,0 +1,10 @@
+{
+  "searched_on": "2026-11-22",
+  "terms_used": ["customer support specialist remote", "community support contract", "social media manager remote"],
+  "leads": [
+    {"company": "Northwind Labs (fictional)", "role": "Support Specialist", "url": "https://example.com/jobs/1",
+     "posted_date": "2026-11-21", "date_verified": true,
+     "why_match": "Requires chat and email support; the candidate's support role covers both",
+     "flags": [{"check": "eligibility", "level": "unknown", "evidence": "Confirm contractors from your country are engaged"}]}
+  ]
+}
