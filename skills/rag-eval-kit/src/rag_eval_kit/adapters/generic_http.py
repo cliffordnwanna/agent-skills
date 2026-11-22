@@ -2,6 +2,7 @@
 
 import os
 import re
+import time
 from urllib.parse import urljoin
 
 import httpx
@@ -32,6 +33,11 @@ class GenericHTTPConfig(BaseModel):
     headers: dict[str, str] = Field(default_factory=dict)
     timeout_seconds: float = Field(default=30, gt=0, le=120)
     max_response_bytes: int = Field(default=1_000_000, ge=1024, le=10_000_000)
+    max_retries: int = Field(default=2, ge=0, le=3)
+    retry_backoff_seconds: float = Field(default=0.2, ge=0, le=5)
+
+
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 
 def resolve_headers(headers: dict[str, str]) -> dict[str, str]:
@@ -66,14 +72,19 @@ class GenericHTTPAdapter:
         payload = {self.config.question_field: case.question}
         if self.config.question_id_field:
             payload[self.config.question_id_field] = case.question_id
-        try:
-            response = self.client.post(
-                url_for(self.config),
-                json=payload,
-                headers=resolve_headers(self.config.headers),
-            )
-        except httpx.HTTPError as error:
-            raise AdapterError(f"HTTP request failed ({type(error).__name__})") from None
+        headers = resolve_headers(self.config.headers)
+        response = None
+        for attempt in range(self.config.max_retries + 1):
+            last = attempt == self.config.max_retries
+            try:
+                response = self.client.post(url_for(self.config), json=payload, headers=headers)
+            except httpx.HTTPError as error:
+                if last:
+                    raise AdapterError(f"HTTP request failed ({type(error).__name__})") from None
+            else:
+                if response.status_code not in RETRYABLE_STATUS_CODES or last:
+                    break
+            time.sleep(self.config.retry_backoff_seconds * (2**attempt))
         if len(response.content) > self.config.max_response_bytes:
             raise AdapterError("HTTP response exceeded configured size limit")
         if not 200 <= response.status_code < 300:

@@ -18,20 +18,31 @@ for key in ("OPENAI_API_KEY", "RAGKIT_OPENAI_API_KEY", "CONFIDENT_API_KEY"):
 
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
-    def reject(*args, **kwargs):
-        raise AssertionError("Tests must not make network connections")
-
-    original_pair = socket.socketpair
     original_connect = socket.socket.connect
+    original_connect_ex = socket.socket.connect_ex
+    original_create = socket.create_connection
 
-    def local_socketpair(*args, **kwargs):
-        # Windows implements asyncio's local wakeup socketpair using loopback TCP.
-        # Allow only this trusted stdlib constructor, not arbitrary client connections.
-        with monkeypatch.context() as local:
-            local.setattr(socket.socket, "connect", original_connect)
-            return original_pair(*args, **kwargs)
+    def is_loopback(address):
+        return isinstance(address, tuple) and address[0] in ("127.0.0.1", "::1", "localhost")
 
-    monkeypatch.setattr(socket, "socketpair", local_socketpair)
-    monkeypatch.setattr(socket.socket, "connect", reject)
-    monkeypatch.setattr(socket.socket, "connect_ex", reject)
-    monkeypatch.setattr(socket, "create_connection", reject)
+    def reject():
+        raise AssertionError("Tests must not make external network connections")
+
+    def guarded_connect(self, address):
+        if not is_loopback(address):
+            reject()
+        return original_connect(self, address)
+
+    def guarded_connect_ex(self, address):
+        if not is_loopback(address):
+            reject()
+        return original_connect_ex(self, address)
+
+    def guarded_create(address, *args, **kwargs):
+        if not is_loopback(address):
+            reject()
+        return original_create(address, *args, **kwargs)
+
+    monkeypatch.setattr(socket.socket, "connect", guarded_connect)
+    monkeypatch.setattr(socket.socket, "connect_ex", guarded_connect_ex)
+    monkeypatch.setattr(socket, "create_connection", guarded_create)
