@@ -3,6 +3,7 @@
 import hashlib
 import json
 import tempfile
+import time
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -36,6 +37,10 @@ def register(app: typer.Typer) -> None:
     )
     app.add_typer(corpus_app, name="corpus")
     app.add_typer(dataset_app, name="dataset")
+    adapter_app = typer.Typer(
+        help="Check that ragkit can talk to your RAG app.", no_args_is_help=True
+    )
+    app.add_typer(adapter_app, name="adapter")
 
     @corpus_app.command("inspect")
     def corpus_inspect(
@@ -237,6 +242,93 @@ def register(app: typer.Typer) -> None:
         )
         if failures:
             raise typer.Exit(1)
+
+    @adapter_app.command("test")
+    def adapter_test(
+        adapter_config: Annotated[
+            Path,
+            typer.Option(exists=True, dir_okay=False, help="Generic HTTP adapter config JSON."),
+        ],
+        question: Annotated[
+            str, typer.Option(help="The question to send.")
+        ] = "What is this system for?",
+        dataset: Annotated[
+            Path | None,
+            typer.Option(
+                exists=True, dir_okay=False, help="Send this file's first question instead."
+            ),
+        ] = None,
+    ) -> None:
+        """Send ONE question to your app and show what ragkit extracted. Saves nothing."""
+        from rag_eval_kit.adapters.base import AdapterError
+        from rag_eval_kit.adapters.generic_http import (
+            GenericHTTPAdapter,
+            GenericHTTPConfig,
+            build_payload,
+            url_for,
+        )
+        from rag_eval_kit.models import EvaluationCase
+
+        try:
+            config = GenericHTTPConfig(**json.loads(adapter_config.read_text(encoding="utf-8")))
+            case = (
+                read_cases(dataset)[0]
+                if dataset
+                else EvaluationCase(
+                    question_id="adapter-test",
+                    question=question,
+                    reference_answer="not used",
+                    category="direct",
+                )
+            )
+        except (ValueError, OSError) as error:
+            _fail(f"{type(error).__name__}: {error}")
+        shown_url = url_for(config).split("?")[0]
+        sent = build_payload(config, case)
+        base = {"url": shown_url, "sent": sent}
+        with GenericHTTPAdapter(config) as adapter:
+            started = time.perf_counter()
+            try:
+                body = adapter.fetch(case)
+            except AdapterError as error:
+                _emit(
+                    {"status": "adapter_failed", "stage": "request", "reason": str(error), **base}
+                )
+                raise typer.Exit(2) from None
+            latency = round((time.perf_counter() - started) * 1000, 1)
+            keys = sorted(body) if isinstance(body, dict) else f"(a {type(body).__name__})"
+            try:
+                record = adapter.parse(case, body, "adapter-test")
+            except AdapterError as error:
+                _emit(
+                    {
+                        "status": "adapter_failed",
+                        "stage": "read_response",
+                        "reason": str(error),
+                        "response_top_level_keys": keys,
+                        "hint": "Fix answer_path, contexts_path, source_ids_path or "
+                        "retrieval_mode_path so they match these keys.",
+                        **base,
+                    }
+                )
+                raise typer.Exit(2) from None
+        _emit(
+            {
+                "status": "adapter_ok",
+                "latency_ms": latency,
+                "response_top_level_keys": keys,
+                "extracted": {
+                    "answer": record.answer[:300],
+                    "retrieved_contexts": [c[:200] for c in record.retrieved_contexts[:3]],
+                    "retrieved_context_count": len(record.retrieved_contexts),
+                    "retrieved_source_ids": record.retrieved_source_ids,
+                    "retrieval_mode": record.retrieval_mode,
+                    "abstained": record.abstained,
+                },
+                "note": "One real request was sent to your endpoint. Nothing was saved.",
+                **base,
+            }
+        )
 
     @app.command("run")
     def run_command(

@@ -3,10 +3,11 @@
 import os
 import re
 import time
+from typing import Any
 from urllib.parse import urljoin
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 from rag_eval_kit.adapters.base import (
     AdapterError,
@@ -35,6 +36,67 @@ class GenericHTTPConfig(BaseModel):
     max_response_bytes: int = Field(default=1_000_000, ge=1024, le=10_000_000)
     max_retries: int = Field(default=2, ge=0, le=3)
     retry_backoff_seconds: float = Field(default=0.2, ge=0, le=5)
+    request: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "Optional JSON body template. ${question} and ${question_id} in any string value "
+            "are replaced. If set, it is sent instead of question_field/question_id_field."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _check_request_template(self) -> "GenericHTTPConfig":
+        if self.request is None:
+            return self
+        found = _placeholders(self.request)
+        unknown = sorted(found - TEMPLATE_VALUES)
+        if unknown:
+            raise ValueError(
+                f"Unknown placeholder in request template: ${{{unknown[0]}}} "
+                "(use ${question} or ${question_id})"
+            )
+        if "question" not in found:
+            raise ValueError("The request template must contain ${question}")
+        return self
+
+
+TEMPLATE_VALUES = {"question", "question_id"}
+_PLACEHOLDER = re.compile(r"\$\{([^}]*)\}")
+
+
+def _placeholders(node: Any) -> set[str]:
+    if isinstance(node, str):
+        return set(_PLACEHOLDER.findall(node))
+    if isinstance(node, dict):
+        return set().union(*(_placeholders(v) for v in node.values()), set())
+    if isinstance(node, list):
+        return set().union(*(_placeholders(v) for v in node), set())
+    return set()
+
+
+def fill_template(node: Any, values: dict[str, str]) -> Any:
+    """Replace ${question} and ${question_id} in string values, in one pass.
+
+    Text that comes from a question is never re-scanned, so a question containing
+    "${question_id}" is sent as written.
+    """
+    if isinstance(node, str):
+        return _PLACEHOLDER.sub(lambda m: values.get(m.group(1), m.group(0)), node)
+    if isinstance(node, dict):
+        return {key: fill_template(value, values) for key, value in node.items()}
+    if isinstance(node, list):
+        return [fill_template(value, values) for value in node]
+    return node
+
+
+def build_payload(config: "GenericHTTPConfig", case: EvaluationCase) -> dict[str, Any]:
+    if config.request is not None:
+        values = {"question": case.question, "question_id": case.question_id}
+        return fill_template(config.request, values)
+    payload: dict[str, Any] = {config.question_field: case.question}
+    if config.question_id_field:
+        payload[config.question_id_field] = case.question_id
+    return payload
 
 
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
@@ -68,10 +130,9 @@ class GenericHTTPAdapter:
             trust_env=False,
         )
 
-    def predict(self, case: EvaluationCase, target_revision: str) -> EvaluationRecord:
-        payload = {self.config.question_field: case.question}
-        if self.config.question_id_field:
-            payload[self.config.question_id_field] = case.question_id
+    def fetch(self, case: EvaluationCase) -> Any:
+        """Send one question and return the parsed JSON response body."""
+        payload = build_payload(self.config, case)
         headers = resolve_headers(self.config.headers)
         response = None
         for attempt in range(self.config.max_retries + 1):
@@ -93,7 +154,13 @@ class GenericHTTPAdapter:
             body = response.json()
         except ValueError:
             raise AdapterError("HTTP target returned invalid JSON") from None
+        return body
 
+    def predict(self, case: EvaluationCase, target_revision: str) -> EvaluationRecord:
+        return self.parse(case, self.fetch(case), target_revision)
+
+    def parse(self, case: EvaluationCase, body: Any, target_revision: str) -> EvaluationRecord:
+        """Turn a JSON response into a record using the configured response paths."""
         answer = response_text(extract_path(body, self.config.answer_path), self.config.answer_path)
         contexts = string_list(
             extract_path(body, self.config.contexts_path), self.config.contexts_path
