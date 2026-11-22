@@ -2,6 +2,8 @@
 
 Everything downstream (baseline, fix, held-out report) rests on these questions being right. **The user reviews and decides. You may explain this rubric, point at rows that look suspicious, and validate the sheet with `ragkit dataset review`. You must not fill the `keep` column or call any question reviewed.**
 
+Questions that come from `ragkit dataset import` get exactly the same treatment: the import checks each one against the documents, but a person still has to read it and decide. Do not treat "it imported without errors" as "it is a good question".
+
 Pre-screen files (for example `review_prescreen.csv` and `PRESCREEN.md` in the benchmark) are recommendations from an automated pass. They are not approval. Ask the user to read the DROP rows and any replacements properly, and to check the evidence on the ACCEPT rows too.
 
 ## Per question, the reviewer checks

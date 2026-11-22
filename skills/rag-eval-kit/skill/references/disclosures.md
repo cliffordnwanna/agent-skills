@@ -4,11 +4,13 @@ Read this before running anything. It describes what `ragkit` does when run from
 
 ## What makes no network call
 
-`doctor`, `plan`, `corpus inspect`, `dataset generate`, `dataset review`, `dataset freeze`, `evaluate --retrieval-mode lexical`, `compare`, `report`. `smoke` starts a mock server on the local machine (loopback only) and calls it; it makes no paid calls. The repository's tests allow only loopback network.
+`doctor`, `init`, `plan`, `corpus init`, `corpus inspect`, `dataset generate`, `dataset import`, `dataset review`, `dataset freeze`, `evaluate --retrieval-mode lexical`, `compare`, `report`. (`init` writes files and, only if you say yes, copies the skill. `corpus init` and `dataset import` only read and write local files.) `smoke` starts a mock server on the local machine (loopback only) and calls it; it makes no paid calls. The repository's tests allow only loopback network.
 
 `doctor` reports `provider_connectivity: UNVERIFIED`: it does not check the internet or any provider.
 
 ## What calls your own RAG application
+
+`ragkit adapter test` sends **one** question to the endpoint in `adapter.json` and prints what it read from the answer. It saves nothing. `ragkit run` calls `predict` for every question in the dataset split you chose, then scores locally. Both contact your app, never OpenAI.
 
 `predict` sends every question in the dataset to the target application you configure (the generic HTTP adapter or the Builder adapter). Questions and any headers you configure leave the machine for that URL. With the Builder adapter, each question creates a session, ingests the corpus, asks once, captures the answer, and deletes the session. Use a target you trust with the dataset. Auth headers should use `${ENV:NAME}` placeholders so secrets stay in environment variables.
 
