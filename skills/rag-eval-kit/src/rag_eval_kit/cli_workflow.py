@@ -11,6 +11,11 @@ import typer
 from rag_eval_kit.corpus import CorpusError, load_corpus
 from rag_eval_kit.dataset import build_candidates, validate_candidates, write_candidate_files
 from rag_eval_kit.freeze import ReviewError, freeze, load_review
+from rag_eval_kit.own_data import (
+    QuestionImportError,
+    init_corpus,
+    read_question_file,
+)
 from rag_eval_kit.predict import read_cases, run_predictions
 
 
@@ -54,6 +59,72 @@ def register(app: typer.Typer) -> None:
                 ],
                 "total_characters": total,
                 "builder_limits_ok": len(docs) <= 20 and total <= 100_000,
+            }
+        )
+
+    @corpus_app.command("init")
+    def corpus_init(
+        directory: Annotated[Path, typer.Argument(exists=True, file_okay=False)],
+        name: Annotated[str, typer.Option(help="A short name for this document set.")],
+        license_name: Annotated[
+            str,
+            typer.Option("--license", help="Licence of the documents, e.g. MIT or proprietary."),
+        ],
+        license_url: Annotated[
+            str, typer.Option(help="Where the licence is stated (a URL, or a path or note).")
+        ],
+        source_repository: Annotated[
+            str, typer.Option(help="Where the documents come from (a URL, path or note).")
+        ],
+        source_revision: Annotated[
+            str | None,
+            typer.Option(help="40-character commit SHA of this version. Default: git HEAD."),
+        ] = None,
+    ) -> None:
+        """Write provenance.json for your own .md and .txt files. Never overwrites. No network."""
+        try:
+            info = init_corpus(
+                directory,
+                name=name,
+                license_name=license_name,
+                license_url=license_url,
+                source_repository=source_repository,
+                source_revision=source_revision,
+            )
+        except (CorpusError, OSError) as error:
+            _fail(str(error))
+        _emit({"status": "provenance_written", **info})
+
+    @dataset_app.command("import")
+    def dataset_import(
+        questions: Annotated[
+            Path,
+            typer.Argument(
+                exists=True,
+                dir_okay=False,
+                help="Your questions: .jsonl, or .csv in review format.",
+            ),
+        ],
+        corpus_dir: Annotated[Path, typer.Option(exists=True, file_okay=False)],
+        output_dir: Annotated[Path, typer.Option(file_okay=False, help="Review files go here.")],
+    ) -> None:
+        """Bring your own questions. Checks them against the corpus; a person must still approve."""
+        try:
+            cases = read_question_file(questions)
+            _, docs, _ = load_corpus(corpus_dir)
+            validate_candidates(cases, docs)
+            info = write_candidate_files(cases, output_dir)
+        except FileExistsError:
+            _fail("Output files already exist; imports never overwrite. Use a new --output-dir")
+        except (CorpusError, QuestionImportError, ValueError, OSError) as error:
+            _fail(str(error))
+        _emit(
+            {
+                "status": "questions_imported",
+                "review_required": True,
+                "next_step": "A person fills the keep column (yes/no) of review.csv, "
+                "then runs dataset review and dataset freeze.",
+                **info,
             }
         )
 
