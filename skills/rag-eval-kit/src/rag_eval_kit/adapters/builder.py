@@ -6,7 +6,7 @@ from uuid import uuid4
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-from rag_eval_kit.adapters.base import AdapterError
+from rag_eval_kit.adapters.base import AdapterError, optional_number
 from rag_eval_kit.models import CorpusDocument, EvaluationCase, EvaluationRecord
 
 MAX_KNOWLEDGE_ITEMS = 20
@@ -54,7 +54,10 @@ class BuilderHTTPAdapter:
                 method, f"{self.base_url}{path}", json=json, headers={"Accept": "application/json"}
             )
         except httpx.HTTPError as error:
-            raise AdapterError(f"Builder HTTP request failed ({type(error).__name__})") from None
+            raise AdapterError(
+                f"Builder HTTP request failed ({type(error).__name__})",
+                kind="timeout" if isinstance(error, httpx.TimeoutException) else "connection",
+            ) from None
         if len(response.content) > self.config.max_response_bytes:
             raise AdapterError("Builder response exceeded configured size limit")
         if not 200 <= response.status_code < 300:
@@ -129,6 +132,7 @@ class BuilderHTTPAdapter:
                     "/api/knowledge",
                     json={"sessionId": session_id, "source": source},
                 )
+            chat_started = time.perf_counter()
             response = self._request(
                 "POST",
                 "/api/chat",
@@ -139,6 +143,7 @@ class BuilderHTTPAdapter:
                     "knowledgeIds": [document.source_id for document in corpus],
                 },
             )
+            chat_ms = (time.perf_counter() - chat_started) * 1000  # the chat call only, not setup
             try:
                 body = response.json()
             except ValueError:
@@ -173,7 +178,17 @@ class BuilderHTTPAdapter:
                     "UNVERIFIED; embedding and generation rates/usage incomplete"
                 ),
             }
+            # Each session holds exactly one message, so the session analytics describe that one
+            # turn: avgResponseTime is in seconds and totalTokens is prompt plus completion.
+            one_turn = isinstance(analytics, dict) and analytics.get("messages") == 1
+            usage = analytics if one_turn else {}
+            seconds = optional_number(usage.get("avgResponseTime"))
+            tokens = optional_number(usage.get("totalTokens"))
             return EvaluationRecord(
+                latency_ms=round(chat_ms, 3),
+                attempts=1,
+                total_tokens=None if tokens is None else int(tokens),
+                app_latency_ms=None if seconds is None else round(seconds * 1000, 3),
                 question_id=case.question_id,
                 question=case.question,
                 answer=answer,

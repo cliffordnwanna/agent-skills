@@ -10,8 +10,6 @@ Built for anyone. Everything personal lives in your own private files and your o
 
 ## How it fits together
 
-![Architecture](docs/architecture.png)
-
 ```mermaid
 flowchart TB
   U["You: paste a job or batch,<br/>or ask for the top 5 matches"]
@@ -219,7 +217,7 @@ Last checked: 2026-11-22, on Windows with Python 3.14.6.
 job-application-kit/
   SKILL.md                         the process
   README.md                        this file
-  docs/                            architecture diagram (png and Mermaid source)
+  docs/                            architecture diagram source (Mermaid)
   references/                      loaded only when a step needs them
   templates/                       preferences, achievements, tracker headers
   examples/                        fictional examples (markdown and JSON)

@@ -1,5 +1,6 @@
 """Run an adapter over a dataset split and collect portable predictions; failures are recorded."""
 
+import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -29,20 +30,27 @@ def run_predictions(
     predict_one: Callable[[EvaluationCase], EvaluationRecord],
     *,
     concurrency: int = 1,
-) -> tuple[list[EvaluationRecord], list[dict[str, str]]]:
+) -> tuple[list[EvaluationRecord], list[dict]]:
     """Return (records, failures). A failed case is never dropped silently."""
     if not 1 <= concurrency <= 5:
         raise ValueError("Concurrency must be between 1 and 5")
 
-    def attempt(case: EvaluationCase) -> tuple[EvaluationRecord | None, dict[str, str] | None]:
+    def attempt(case: EvaluationCase) -> tuple[EvaluationRecord | None, dict | None]:
+        started = time.perf_counter()
         try:
-            return predict_one(case), None
+            record = predict_one(case)
         except Exception as error:
             return None, {
                 "question_id": case.question_id,
                 "error_type": type(error).__name__,
+                "kind": getattr(error, "kind", "error"),
                 "error": str(error)[:300],
+                "latency_ms": round((time.perf_counter() - started) * 1000, 3),
             }
+        if record.latency_ms is None:  # adapters that do not time themselves
+            elapsed = (time.perf_counter() - started) * 1000
+            record = record.model_copy(update={"latency_ms": round(elapsed, 3)})
+        return record, None
 
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         results = list(pool.map(attempt, cases))

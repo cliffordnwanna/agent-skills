@@ -11,6 +11,14 @@ This guide gives no default numbers. The right thresholds depend on the applicat
 5. **What counts as no evidence, and what counts as a regression.** An interval that includes zero is "no evidence of a change", not "no change".
 6. **Run budget and stopping rule.** The cap in USD, and the number of repeats. Decide now so a bad first result does not tempt another paid run.
 
+## Ceilings for speed, errors and cost
+
+Besides the quality rule, the user can set ceilings in `thresholds.yaml`. These are limits the measurements must stay under, for example the slow end of answer times (`latency_p95_ms`), the share of questions that fail (`error_rate`), the share of unusable answers (`invalid_rate`) and the cost of one question (`cost_per_query_usd`). The user chooses the numbers, from what their own users would accept. Do not suggest "typical" values.
+
+- A value that could not be measured is **unassessable** and never counts as passing. Cost cannot be measured unless the app reports input and output token counts and the user gives prices in a pricing file.
+- With few questions, the slow-end time is close to the single slowest answer. Say so.
+- Cost here covers the app under test only. It is an estimate from token counts, not a bill, and it excludes the judge and hosting.
+
 ## Write it down
 
 Save a short file (for example `thresholds.md`) next to the frozen dataset with the date, the dataset hash, the metrics, the pass rule, the improvement rule, the guard metrics and the budget. Commit it before running the held-out split. Quote it in the report unchanged.

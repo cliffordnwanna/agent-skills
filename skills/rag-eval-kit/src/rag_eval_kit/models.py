@@ -37,7 +37,19 @@ class EvaluationRecord(BaseModel):
     expected_source_ids: list[str] = Field(default_factory=list, max_length=20)
     category: QuestionCategory | None = None
     abstained: bool | None = None
-    latency_ms: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    latency_ms: float | None = Field(
+        default=None,
+        ge=0,
+        allow_inf_nan=False,
+        description="Client-side wall-clock time (monotonic clock, retries included)",
+    )
+    attempts: int | None = Field(default=None, ge=1, description="HTTP attempts used")
+    input_tokens: int | None = Field(default=None, ge=0)
+    output_tokens: int | None = Field(default=None, ge=0)
+    total_tokens: int | None = Field(default=None, ge=0)
+    app_latency_ms: float | None = Field(
+        default=None, ge=0, allow_inf_nan=False, description="Time the app itself reported"
+    )
     repeat: int = Field(default=1, ge=1)
     run_id: str | None = Field(default=None, max_length=128)
     metadata: dict[str, Any] = Field(default_factory=dict)

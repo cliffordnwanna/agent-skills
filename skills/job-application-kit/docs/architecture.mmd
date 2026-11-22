@@ -4,7 +4,7 @@ flowchart TB
   U --> S
   S <--> W["Web research and job discovery<br/>Postings, employers, pay, exchange rates<br/>(built into your AI client)"]
   S <--> P["Portfolio / CV source<br/>LivePortfolio MCP, or your pasted CV"]
-  S --> V["Typed JSON + Pydantic validation<br/>truth rule, flags, limits enforced in code"]
+  S --> V["Typed JSON + Pydantic validation<br/>truth rule, flags, limits checked in code"]
   V --> F["Document files<br/>DOCX, PDF, CSV tracker (private)"]
   S <-.optional.-> R["Reactive Resume MCP<br/>PDF rendering and online tracker"]
   S <-.planned, not available yet.-> G["Gmail<br/>Drafts, then approved sending"]

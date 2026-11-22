@@ -5,10 +5,12 @@ on:
     paths:
       - "skills/rag-eval-kit/**"
       - ".github/workflows/rag-eval-kit-ci.yml"
+      - ".github/scripts/**"
   pull_request:
     paths:
       - "skills/rag-eval-kit/**"
       - ".github/workflows/rag-eval-kit-ci.yml"
+      - ".github/scripts/**"
 permissions:
   contents: read
 jobs:
@@ -40,8 +42,18 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      - run: uv run pytest
+      - name: Run tests
+        run: uv run pytest -ra --tb=short --junitxml=pytest-report.xml
+      - name: Show failing tests as annotations
+        if: failure()
+        run: uv run python ../../.github/scripts/annotate_pytest_failures.py pytest-report.xml
       - run: uv run ragkit doctor
       - run: uv run ragkit smoke
       - run: uv run ragkit corpus inspect benchmarks/fastapi-docs
       - run: uv build
+      - name: Wheel carries the skill and no test files
+        run: >-
+          uv run python -c "import glob, zipfile;
+          names = zipfile.ZipFile(glob.glob('dist/*.whl')[0]).namelist();
+          assert 'rag_eval_kit/skill_data/SKILL.md' in names;
+          assert not any(n.startswith('tests/') for n in names)"
