@@ -1,6 +1,7 @@
 name: rag-eval-kit offline checks
 on:
   push:
+    branches: [main]
     paths:
       - "skills/rag-eval-kit/**"
       - ".github/workflows/rag-eval-kit-ci.yml"

@@ -2,6 +2,7 @@ name: job-application-kit tests
 
 on:
   push:
+    branches: [main]
     paths:
       - "skills/job-application-kit/**"
       - ".github/workflows/job-application-kit-tests.yml"
