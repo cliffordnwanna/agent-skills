@@ -244,7 +244,7 @@ The tool also records which version of itself produced every run (`evaluator_rev
 Last checked: 2026-11-22.
 
 **VERIFIED** (commands run and passing, on Windows):
-- 160 automated tests pass, on Python 3.12 and on 3.14, with no network and no paid calls. They include the offline workflow against a local fake app: import, approval, freeze, `ragkit run` with resume and refusals, request templates, and `ragkit init`.
+- 206 automated tests pass, on Python 3.12 and on 3.14, with no network and no paid calls. They include the offline workflow against a local fake app: import, approval, freeze, `ragkit run` with resume and refusals, request templates, `ragkit init`, the speed, error and cost measurements, and the readable and `--json` output.
 - `ragkit doctor`, `ragkit smoke` and `ragkit corpus inspect benchmarks/fastapi-docs` run. The package builds, and the wheel includes the agent skill and no test files.
 - A real judge call worked once, on 2026-11-21: `gpt-4.1-mini`, 3 fixture examples, about $0.012. This showed compatibility only, not quality.
 - **A real app, in a throwaway test (2026-11-22):** the tool ran against the real Conversational Agent Builder at tag `baseline-v1` (a clean checkout, in keyword-only mode with no key). Four unreviewed questions were answered with none failing. The answer, retrieved passages and source IDs were captured, and `evaluate` and `report` ran. This proves the plumbing. It is not a result and is not used in the case study. Steps and findings are in [docs/RUNBOOK_BUILDER.md](docs/RUNBOOK_BUILDER.md). It showed two gaps: per-question latency was not recorded, and refusing to answer cannot be assessed in keyword mode. Latency recording has since been added (see the next list: UNVERIFIED against the real Builder).
@@ -255,6 +255,7 @@ Last checked: 2026-11-22.
 - The Builder in **meaning-based (semantic) mode**. That needs an OpenAI key set for the Builder, which was not available for the test.
 - `ragkit run` and `ragkit adapter test` against the Builder or any real app. They were tried only against the local fake app. The real-app test above used `predict`, `evaluate` and `report` by hand.
 - `dataset import` and `corpus init` on a real project. They are covered by automated tests only.
+- How the readable output looks in every terminal. Its plain-text form was checked in Git Bash and PowerShell on Windows, and the plain `[ok]` fallback for terminals without checkmarks is tested. Colours depend on your terminal, and `NO_COLOR` turns them off.
 - The new speed, error and cost measurements (latency, token counts, app-reported timing, error rate, `thresholds.yaml` ceilings) and the document-level retrieval scores. They are covered by automated tests with fake apps. They have not been run against the real Builder or any real app, and the real Builder's token and timing fields are read from its source code, not from a live response.
 - Judge scoring of a real app: no real before-and-after run has been done.
 
