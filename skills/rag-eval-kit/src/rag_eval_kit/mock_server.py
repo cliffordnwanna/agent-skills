@@ -77,6 +77,14 @@ def make_server(
             self.wfile.write(data)
 
         def do_POST(self) -> None:
+            # Always consume the request body before replying. Answering 404/503 without reading
+            # it and then closing the connection can reset the socket before the client has read
+            # the response, which surfaces as an intermittent ReadError instead of the status.
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                length = 0
+            body = self.rfile.read(length) if length > 0 else b""
             if self.path != "/api/chat":
                 return self._send(404, {"error": "not found"})
             with lock:
@@ -84,8 +92,7 @@ def make_server(
                     state["failures_left"] -= 1
                     return self._send(503, {"error": "temporarily unavailable"})
             try:
-                length = int(self.headers.get("Content-Length", "0"))
-                question = json.loads(self.rfile.read(length))["question"]
+                question = json.loads(body)["question"]
             except (ValueError, KeyError, TypeError):
                 return self._send(400, {"error": "question required"})
             qwords = _words(question)
