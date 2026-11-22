@@ -25,7 +25,7 @@ Read `references/disclosures.md` before running anything. It says what the tool 
 
 ## The steps
 
-Run `ragkit <command> --help` for every option. Do not guess flags. Say who does each step, as in this list.
+Run `ragkit <command> --help` for every option. Do not guess flags. Say who does each step, as in this list. Commands print a readable summary by default. **When you need to read results exactly (scores, hashes, failures), add `--json`.** Never quote numbers from memory of the readable text.
 
 1. **Check the tool.** `ragkit doctor` and `ragkit smoke` need no key and cost nothing. Suggest them first.
 2. **Set up.** `ragkit init` writes `ragkit.yaml` and `adapter.json` in the project folder. It never overwrites. It asks before copying this skill anywhere. Do not answer that question for the user.

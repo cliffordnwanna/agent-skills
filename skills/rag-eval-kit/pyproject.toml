@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ragkit = "rag_eval_kit.cli:app"
+ragkit = "rag_eval_kit.cli:main"
 
 [dependency-groups]
 dev = ["pytest==9.2.0", "ruff==0.17.5"]
@@ -41,3 +41,7 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Long human-readable message strings; wrapping them would make them harder to read.
+"src/rag_eval_kit/output.py" = ["E501"]

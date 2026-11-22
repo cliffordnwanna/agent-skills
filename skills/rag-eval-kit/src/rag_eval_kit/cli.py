@@ -26,19 +26,31 @@ from rag_eval_kit.observability import (
     load_failures,
     load_pricing,
 )
+from rag_eval_kit.output import emit
 from rag_eval_kit.privacy import configure_local_runtime
 from rag_eval_kit.provenance import evaluator_revision
 from rag_eval_kit.reporting import markdown_report
 from rag_eval_kit.revision import verify_revision
 
+
+def _json_flag(
+    json_output: Annotated[
+        bool,
+        typer.Option(
+            "--json",
+            help="Print exact machine-readable JSON instead of a readable summary.",
+        ),
+    ] = False,
+) -> None:
+    if json_output:
+        os.environ["RAGKIT_OUTPUT"] = "json"
+
+
 app = typer.Typer(
+    callback=_json_flag,
     no_args_is_help=True,
     help="Local RAG evaluation toolkit — offline checks and bounded judge spike.",
 )
-
-
-def emit(value: dict) -> None:
-    typer.echo(json.dumps(value, indent=2, ensure_ascii=False, default=str))
 
 
 def _read_run(path: Path) -> dict:
@@ -458,7 +470,7 @@ def evaluate(
         persist()
         if handle:
             handle.close()
-    emit(report)
+    emit(report, wrote=str(output))
     if report["status"] != "completed":
         raise typer.Exit(1)
 
@@ -525,5 +537,14 @@ from rag_eval_kit.cli_workflow import register  # noqa: E402
 
 register(app)
 
-if __name__ == "__main__":
+
+def main() -> None:
+    """Entry point. ``--json`` is accepted anywhere on the command line."""
+    if "--json" in sys.argv[1:]:
+        os.environ["RAGKIT_OUTPUT"] = "json"
+        sys.argv = [sys.argv[0], *[a for a in sys.argv[1:] if a != "--json"]]
     app()
+
+
+if __name__ == "__main__":
+    main()

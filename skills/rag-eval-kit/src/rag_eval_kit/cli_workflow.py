@@ -12,6 +12,7 @@ import typer
 from rag_eval_kit.corpus import CorpusError, load_corpus
 from rag_eval_kit.dataset import build_candidates, validate_candidates, write_candidate_files
 from rag_eval_kit.freeze import ReviewError, freeze, load_review
+from rag_eval_kit.output import emit as _emit  # noqa: E402
 from rag_eval_kit.own_data import (
     QuestionImportError,
     init_corpus,
@@ -20,10 +21,6 @@ from rag_eval_kit.own_data import (
 from rag_eval_kit.pipeline import run_pipeline
 from rag_eval_kit.predict import read_cases, run_predictions
 from rag_eval_kit.scaffold import DEFAULT_SKILL_PARENT, InitError, copy_skill, write_starter_files
-
-
-def _emit(value: dict) -> None:
-    typer.echo(json.dumps(value, indent=2, ensure_ascii=False, default=str))
 
 
 def _fail(reason: str, code: int = 2) -> None:

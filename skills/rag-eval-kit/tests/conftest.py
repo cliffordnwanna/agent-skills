@@ -23,6 +23,8 @@ for key in ("GITHUB_ACTIONS", "FORCE_COLOR", "PY_COLORS", "CLICOLOR_FORCE"):
     os.environ.pop(key, None)
 os.environ["NO_COLOR"] = "1"
 os.environ["TERM"] = "dumb"
+# Existing tests read the exact JSON. Readable output has its own tests (test_output.py).
+os.environ["RAGKIT_OUTPUT"] = "json"
 
 
 @pytest.fixture(autouse=True)

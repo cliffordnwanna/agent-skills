@@ -23,11 +23,23 @@ uv tool install "git+https://github.com/cliffordnwanna/agent-skills#subdirectory
 ragkit smoke
 ```
 
-`ragkit smoke` starts a tiny fake RAG app on your computer, asks it questions, scores the answers, and prints the result. It needs no key and makes no paid calls. If you see `"status": "smoke_passed"`, the tool works on your machine. With pip instead of uv: `pip install "git+https://github.com/cliffordnwanna/agent-skills#subdirectory=skills/rag-eval-kit"`.
+`ragkit smoke` starts a tiny fake RAG app on your computer, asks it questions, scores the answers, and prints the result. It needs no key and makes no paid calls. This is what you should see:
+
+```text
+✓ Smoke test passed
+  A tiny fake RAG app on this computer answered 3 questions and was scored.
+  Free retrieval scores: hit@1 1.00  hit@3 1.00  recall@3 1.00  mrr 1.00
+  Not assessable here: abstention_accuracy
+  Paid calls: 0. No key was needed.
+
+Next: run `ragkit init` in your own project.
+```
+
+If you see `✓ Smoke test passed`, the tool works on your machine. With pip instead of uv: `pip install "git+https://github.com/cliffordnwanna/agent-skills#subdirectory=skills/rag-eval-kit"`.
 
 Then, in your own project: `ragkit init`. The [workflow](#the-workflow-who-does-what) below shows each step.
 
-> The commands print JSON today (easy for scripts and agents, plain for people). Friendlier terminal output is planned.
+> Every command prints a short readable summary with a `Next:` line. Add `--json` anywhere on the command line (for example `ragkit run --json`) to get exact machine-readable output for scripts and AI agents. On a terminal that cannot show checkmarks, `[ok]` and `[x]` are used instead.
 
 ## Who it is for
 
@@ -73,7 +85,7 @@ You build or maintain a text-based RAG app and want to measure a change with num
 | 9 | Optional paid judge scoring | Tool, only with your OK | `ragkit evaluate ... --live --approve-paid` |
 | 10 | Compare before and after, write the report | Tool | `ragkit compare`, `ragkit report` |
 
-The tool never approves questions, never starts a paid call by itself, and stops with `waiting_for_human` until step 6 is done.
+The tool never approves questions, never starts a paid call by itself, and stops with "Waiting for a person" (`waiting_for_human` in `--json`) until step 6 is done.
 
 ## Use it with your own project
 
@@ -148,6 +160,41 @@ ceilings:
 
 Add `thresholds: thresholds.yaml` (and `pricing: pricing.json`) to `ragkit.yaml`, or pass `--thresholds` and `--pricing` to `ragkit evaluate`. A value the tool could not measure is reported as unknown and never counts as passing. If some questions fail, `ragkit run` stops by default; `ragkit run --allow-failures` scores the rest and counts the failures in the error rate. Retrieval scores count each source document once, even when your app returns several chunks of it (`--hit-level chunk` turns that off).
 
+This is what a finished run looks like. The scores here come from a tiny fake app, so they mean nothing about any real system:
+
+```text
+✓ ragkit run finished (dev set, free scoring, 0 paid calls)
+  ✓ settings       ragkit.yaml
+  ✓ documents      2 documents verified
+  ✓ questions      2 questions, approved by Your Name
+  ✓ app version    bb0dc7b
+  ✓ ask your app   predictions.jsonl
+  ✓ score answers  run-lexical.json
+  ✓ write report   report.md
+
+  Retrieval scores (free: did it find the right documents?): hit@1 0.00  hit@3 0.00
+  recall@3 0.00  mrr 0.00
+  Not assessable here: abstention_accuracy
+  Speed: median 5 ms, slow end 30 ms
+  Errors: 0.0% of questions
+  Report: ragkit-out\dev\report.md
+
+Next:
+  - Paid judge scoring is a separate step you approve yourself: `ragkit plan`, then `ragkit evaluate ... --live --approve-paid`.
+  - Agree your pass rules before looking at results, then `ragkit compare`.
+```
+
+If a person still has to act, it stops and says so:
+
+```text
+… Waiting for a person: the golden set is not frozen yet
+  ✓ settings       ragkit.yaml
+  ✓ documents      2 documents verified
+
+  No frozen dataset yet. A person has to do this part; ragkit will not do it for you:
+  1. Get candidate questions: ...
+```
+
 ## The FastAPI example benchmark
 
 The repository includes one ready-made benchmark made from public FastAPI documentation, so you can see the whole workflow without writing questions. Clone the repository to use it:
@@ -211,7 +258,7 @@ Last checked: 2026-11-22.
 - The new speed, error and cost measurements (latency, token counts, app-reported timing, error rate, `thresholds.yaml` ceilings) and the document-level retrieval scores. They are covered by automated tests with fake apps. They have not been run against the real Builder or any real app, and the real Builder's token and timing fields are read from its source code, not from a live response.
 - Judge scoring of a real app: no real before-and-after run has been done.
 
-**Not built:** friendly (non-JSON) terminal output, negative controls, judge agreement, question generation from your own documents, wildcard response paths.
+**Not built:** negative controls, judge agreement, question generation from your own documents, wildcard response paths.
 
 **The first case study** will use the [Conversational Agent Builder](https://github.com/cliffordnwanna/CONVERSATIONAL_AGENT_BUILDER) at tag `baseline-v2`. **UNVERIFIED: that tag does not exist yet.** The earlier real-app test used the existing tag `baseline-v1`. The case study has not been run, and no results exist. Steps: [docs/RUNBOOK_BUILDER.md](docs/RUNBOOK_BUILDER.md).
 

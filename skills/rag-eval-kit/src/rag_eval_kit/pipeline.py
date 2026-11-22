@@ -8,6 +8,7 @@ It never makes paid calls: semantic scoring stays a separate, explicitly approve
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -114,6 +115,7 @@ def _ragkit(*args: str) -> tuple[int, str, str]:
         capture_output=True,
         text=True,
         check=False,
+        env={**os.environ, "RAGKIT_OUTPUT": "json"},  # exact output for the error details
     )
     return result.returncode, result.stdout, result.stderr
 
@@ -338,17 +340,27 @@ def run_pipeline(
             )
         stage("report", "done", command=_shown(*report_args), file=str(report_file))
 
-    ceilings = None
+    saved: dict = {}
     try:
-        ceilings = json.loads(run_file.read_text(encoding="utf-8")).get("ceiling_check")
+        saved = json.loads(run_file.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         pass
+    ceilings = saved.get("ceiling_check")
+    obs = saved.get("observability") or {}
+    headline = {
+        "scores": {k: v.get("score") for k, v in (saved.get("metrics") or {}).items()},
+        "hit_level": saved.get("hit_level"),
+        "latency_p50_ms": (obs.get("latency_ms") or {}).get("p50"),
+        "latency_p95_ms": (obs.get("latency_ms") or {}).get("p95"),
+        "error_rate": (obs.get("error_rate") or {}).get("rate"),
+        "report": str(report_file),
+    }
     return result(
         "completed",
         paid_calls=0,
+        **headline,
         **({"ceilings": ceilings["overall"]} if ceilings else {}),
         next_steps=[
-            "This run used the free lexical track (source matching only).",
             "Paid judge scoring is a separate step you approve yourself: "
             "`ragkit plan`, then `ragkit evaluate ... --live --approve-paid`.",
             "Agree your pass rules before looking at results, then `ragkit compare`.",

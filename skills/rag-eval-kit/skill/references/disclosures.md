@@ -6,7 +6,7 @@ Read this before running anything. It describes what `ragkit` does when run from
 
 `doctor`, `init`, `plan`, `corpus init`, `corpus inspect`, `dataset generate`, `dataset import`, `dataset review`, `dataset freeze`, `evaluate --retrieval-mode lexical`, `compare`, `report`. (`init` writes files and, only if you say yes, copies the skill. `corpus init` and `dataset import` only read and write local files.) `smoke` starts a mock server on the local machine (loopback only) and calls it; it makes no paid calls. The repository's tests allow only loopback network.
 
-`doctor` reports `provider_connectivity: UNVERIFIED`: it does not check the internet or any provider.
+`doctor` says it did not check the network (`provider_connectivity: UNVERIFIED` with `--json`): it does not check the internet or any provider.
 
 ## What calls your own RAG application
 
