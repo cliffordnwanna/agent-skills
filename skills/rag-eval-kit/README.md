@@ -42,4 +42,4 @@ If `--budget-usd` is omitted, `RAGKIT_BUDGET_USD` is used (default is zero, whic
 
 On 2026-11-21, a live compatibility check used `gpt-4.1-mini`, a $2 per-run reservation cap and three fixed examples. All 15 metric calls (five metrics × three examples) and the Synthesizer completed; three candidate examples were produced for review. The ledger recorded 51 paid judge requests, 21,564 input tokens, 2,049 output tokens and **$0.011904** estimated from provider-reported usage and the configured price. The $2 cap was not reached. This checks integration only: the examples are fixtures, their metrics are not a benchmark, and the synthesized candidates are not approved golden data.
 
-See [STATE.md](STATE.md) for stage status, run ID, verification evidence and repository revisions. Licensed under Apache-2.0. No employer or client data is included.
+Stage status and run notes are kept in a local, untracked working file. Licensed under Apache-2.0. No employer or client data is included.

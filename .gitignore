@@ -6,3 +6,6 @@ outputs/
 .venv/
 __pycache__/
 node_modules/
+.pytest_cache/
+out/
+skills/rag-eval-kit/STATE.md
